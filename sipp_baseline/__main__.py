@@ -43,9 +43,15 @@ def main():
     gen.add_argument("--height", type=positive, default=24)
     gen.add_argument("--seed", type=int, default=0)
     gen.add_argument("--updates", type=nonnegative, default=5)
-    gen.add_argument("--obstacles", type=nonnegative, default=4)
-    gen.add_argument("--probability", type=probability, default=.25)
-    gen.add_argument("--horizon", type=nonnegative, default=500)
+    counts = gen.add_mutually_exclusive_group()
+    counts.add_argument("--obstacles", type=nonnegative, help="obstacle count (default: 4)")
+    counts.add_argument("--density", type=probability, help="obstacles / free cells; independent of q")
+    gen.add_argument("--change-probability", "--q", dest="change_probability", type=probability, default=.25,
+                     help="q: per-obstacle probability of a proposed change per forecast update")
+    gen.add_argument("--update-interval", type=positive, default=100, help="ticks between updates (default: 100 = 10 s)")
+    gen.add_argument("--change-modes", nargs="+", choices=['waypoint','pause','speed','accelerate','decelerate'], default=['waypoint','pause','speed'])
+    gen.add_argument("--generation-timeout", type=positive, default=120)
+    gen.add_argument("--horizon", type=nonnegative, default=40000)
     gen.add_argument("--start", nargs=4, type=int, metavar=("R", "C", "O", "V"))
     gen.add_argument("--goal", nargs=3, type=int, metavar=("R", "C", "V"))
     run = commands.add_parser("run", help="replan independently for all saved forecasts")
@@ -79,8 +85,11 @@ def main():
             if args.output.exists():
                 raise ValueError(f"output already exists: {args.output}")
             grid = read_map(args.map) if args.map else ["."*args.width for _ in range(args.height)]
-            data = generate(grid, args.seed, args.updates, args.obstacles, args.probability,
-                            args.horizon, args.start, args.goal)
+            data = generate(grid, seed=args.seed, updates=args.updates, obstacles=args.obstacles,
+                            change_probability=args.change_probability, horizon=args.horizon,
+                            start=args.start, goal=args.goal, map_name=args.map.stem if args.map else None,
+                            density=args.density, update_interval=args.update_interval,
+                            generation_timeout=args.generation_timeout, change_modes=args.change_modes)
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(data, indent=2) + "\n")
             print(args.output)

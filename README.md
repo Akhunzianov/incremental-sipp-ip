@@ -39,7 +39,7 @@ Output paths must be new: existing runs are never silently overwritten.
 ```sh
 python3 -m sipp_baseline generate --output runs/seed42.json \
   --width 24 --height 24 --seed 42 --updates 10 --obstacles 12 \
-  --probability 0.25 --horizon 800
+  --q 0.25 --horizon 40000
 python3 -m sipp_baseline run runs/seed42.json --output runs/seed42-baseline \
   --repeats 10 --warmups 2
 ```
@@ -49,12 +49,13 @@ Or use the supplied authors' maps (MovingAI-derived) or a MovingAI `.map` file:
 ```sh
 python3 -m sipp_baseline generate --map maps/empty_64_64.txt \
   --output runs/empty-seed7.json --seed 7 --updates 5 --obstacles 163 \
-  --probability 0.1 --horizon 1500
+  --q 0.1 --horizon 40000
 python3 -m sipp_baseline run runs/empty-seed7.json \
   --output runs/empty-seed7-baseline --repeats 10 --warmups 2
 ```
 
-Default start/goal are the first/last free cells in row-major order; use
+For named paper maps, default start/goal are the authors’ query coordinates.
+For other maps they are the first/last free cells in row-major order; use
 `--start ROW COLUMN ORIENTATION VELOCITY` and `--goal ROW COLUMN VELOCITY` to
 override. A free cell alone does not guarantee feasibility under the primitives.
 The time horizon must be long enough for the chosen map and speed constraints.
@@ -135,6 +136,33 @@ still be opened offline on their own.
 Sources: [paper, Empirical Evaluation](https://arxiv.org/html/2302.00776)
 and [pinned sample release](https://github.com/PathPlanning/SIPP-IP/tree/77ca7491345c00b1cec7d0b88fe96cc561e0be25/tests).
 
+## Density p and change probability q
+
+`generate` now uses the pinned authors' obstacle-generation routines for its
+initial forecast. **p** denotes obstacle density (`--density`), while **q** denotes
+change probability (`--change-probability`, also `--q`). The old ambiguous
+`--probability` option has been removed. Choose `--density` or `--obstacles`.
+
+```sh
+python3 -m sipp_baseline generate --map maps/empty_64_64.txt \
+  --output runs/paper-style-q0.json --seed 7 --density 0.04 --q 0 --updates 5
+python3 -m sipp_baseline generate --map maps/empty_64_64.txt \
+  --output runs/paper-style-q025.json --seed 7 --density 0.04 --q 0.25 --updates 5
+```
+
+These two runs have identical initial forecasts. At q=0 every later forecast
+remains identical too. For q>0, obstacles can acquire waypoints, pause, or gradually
+speed up/slow down while preserving their past, in-progress movements and goals.
+An update occurs every 100 ticks by default (`--update-interval`, 10 seconds).
+q is the per-obstacle probability of a change **proposal per update**; infeasible
+changes are logged as rejected. Use `--change-modes pause`, `waypoint`, or `speed`
+to isolate a mechanism. The default horizon is the original 40,000 ticks.
+
+The upstream generator is compiled lazily with g++. `--generation-timeout` bounds
+its sampling/search runtime (default 120 s). See [the model specification](docs/model.md)
+for exact source procedures, time scaling, rejection policies and compatibility
+limits. The old random-walk demo files remain historical examples.
+
 ## Run artifacts
 
 Each run saves:
@@ -180,7 +208,7 @@ See [the model specification](docs/model.md) before interpreting a benchmark.
 This milestone includes full replanning, replay, synthetic updates, map import,
 validation, a small exact oracle, and measurements. It does not implement
 incremental repair, a moving start, continuous geometric collision checking, or
-a reproduction of the paper's obstacle-generation distribution.
+the full paper experiment corpus.
 
 For a future incremental planner, keep the same saved scenario and result
 contract and compare each forecast's status/cost against this baseline. Keep

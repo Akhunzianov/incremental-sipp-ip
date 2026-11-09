@@ -134,11 +134,12 @@ function selectForecast(index){
  $('validation').textContent=f.validation;$('validation').className='muted'+(f.validation.startsWith('Validation failed')?' warning':'');
  $('metrics').replaceChildren();metricRow('Arrival',r.cost_ticks===null?'—':fmtTime(r.cost_ticks));metricRow('Median full replan',(f.median_total_us/1000).toFixed(3)+' ms');metricRow('Measured repetitions',f.samples);
  metricRow('Expanded intervals',number(r.expansions));metricRow('Primitive projections',number(r.projections));metricRow('Peak OPEN',number(r.peak_open));metricRow('Path repetition',data.repetition);
+ if(f.revision_tick!==null&&f.revision_tick!==undefined)metricRow('Forecast revision time',fmtTime(f.revision_tick));
  if(f.paper){const ref=f.paper.recorded_result;metricRow('Obstacle count',number(f.paper.obstacles));metricRow('Source density','1/'+f.paper.density_denominator);if(ref){metricRow('Authors’ saved arrival',ref.cost_ticks===null?'No path':fmtTime(ref.cost_ticks));metricRow('Saved result comparison',r.status===ref.status&&r.cost_ticks===ref.cost_ticks?'Matches':'Differs / inconclusive');}}
  $('actions').replaceChildren();activeRow=-1;
  r.steps.forEach((step,index)=>{const li=document.createElement('li'),button=document.createElement('button'),name=document.createElement('span'),time=document.createElement('span');name.textContent=`${index+1}. ${title(step.action)}`;time.textContent=`${step.start}–${step.end}`;button.append(name,time);button.title=`(${step.from[0]}, ${step.from[1]}) → (${step.to[0]}, ${step.to[1]})`;button.onclick=()=>{stop();setTick(step.start);};li.append(button);$('actions').append(li);});
  if(!r.steps.length){const li=document.createElement('li');li.className='empty';li.textContent=r.status==='solved'?'Already at the goal.':'No planned actions.';$('actions').append(li);}
- $('events').textContent=f.paper?'Source: '+f.paper.upstream_path:f.events.length?f.events.map(e=>`Obstacle ${e.obstacle}: ${e.mode}`).join(' · '):'No generator events recorded.';
+ $('events').textContent=f.paper?'Source: '+f.paper.upstream_path:f.events.length?f.events.map(e=>`Obstacle ${e.obstacle}: ${e.mode}${e.effective_tick===undefined?'':' at '+fmtTime(e.effective_tick)}${e.outcome&&e.outcome!=='applied'?' ('+title(e.outcome)+')':''}`).join(' · '):'No generator events recorded.';
  for(const id of ['time','tick'])$(id).max=timeLimit();setTick(tick);renderChart();
 }
 function renderChart(){
@@ -164,6 +165,10 @@ if(paper){
  document.querySelector('.footer').textContent='Independent original samples, not forecast revisions. Source interval times are multiplied by 10 exactly as in the authors’ loader. Occupied endpoints are inclusive; robot position is illustrative and swept cells use the exact primitive table. Validation ends at arrival. Large viewers use browser-native gzip decompression.';
 }
 data.forecasts.forEach((f,i)=>{const option=document.createElement('option');option.value=i;option.textContent=f.id;$('forecast').append(option);});
+if(data.metadata.generator==='sipp-ip-upstream-v2'){
+ $('source-note').hidden=false;
+ $('source-note').textContent=`Upstream SIPP-IP obstacles · density p = ${number(data.metadata.obstacle_density)} · change probability q = ${data.metadata.change_probability} per obstacle per update · update interval ${fmtTime(data.metadata.update_interval_ticks)}. Past motion is preserved; robot replanning keeps the fixed reference start.`;
+}
 if(data.metadata.viewer_index){$('source-note').hidden=false;const back=document.createElement('a');back.href=data.metadata.viewer_index;back.textContent='← All tests on this map';$('source-note').prepend(back,document.createTextNode(' · '));}
 for(const id of ['time','tick']){$(id).min=data.start_tick;$(id).max=data.horizon;$(id).addEventListener('input',()=>{stop();setTick($(id).value);});}
 $('forecast').onchange=()=>selectForecast(Number($('forecast').value));$('previous').onclick=()=>selectForecast(selected-1);$('next').onclick=()=>selectForecast(selected+1);

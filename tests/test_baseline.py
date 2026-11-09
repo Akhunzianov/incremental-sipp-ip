@@ -138,11 +138,11 @@ class PlannerTests(unittest.TestCase):
 
 class InfrastructureTests(unittest.TestCase):
     def test_generator_determinism_and_zero_change(self):
-        a = generate(["."*13]*9, seed=7, updates=3, probability=0)
-        self.assertEqual(a, generate(["."*13]*9, seed=7, updates=3, probability=0))
+        a = generate(["."*13]*9, seed=7, updates=3, change_probability=0)
+        self.assertEqual(a, generate(["."*13]*9, seed=7, updates=3, change_probability=0))
         self.assertTrue(all(f["reservations"] == a["forecasts"][0]["reservations"] for f in a["forecasts"]))
-        b = generate(["."*13]*9, seed=7, updates=3, probability=1)
-        self.assertTrue(all(len(f["events"]) == 4 for f in b["forecasts"][1:]))
+        b = generate(["."*13]*9, seed=7, updates=3, change_probability=1)
+        self.assertTrue(any(f["events"] for f in b["forecasts"][1:]))
 
     def test_input_validation(self):
         for field, value in [("horizon", -1), ("grid", ["..", "."]), ("tick_seconds", 1),

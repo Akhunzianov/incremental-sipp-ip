@@ -104,23 +104,97 @@ Optional `metadata` and per-forecast `events` describe the experiment and do not
 affect search. Full snapshots, rather than deltas, intentionally make baseline
 replay independent of change-detection code.
 
-## Synthetic forecast generator
+## Obstacle generation and forecast changes (v2)
 
-The `grid-walk-v1` generator uses a private seeded Python RNG. Initial obstacle
-cells are sampled without replacement, excluding the query endpoints. Obstacles
-follow four-neighbor grid walks. Their source and destination are both reserved
-for the whole movement interval, a conservative grid occupancy approximation.
-Obstacle-obstacle overlap is allowed. Initial moves avoid occupying the robot's
-start at tick zero; later conflicts remain possible and are handled by planning.
+Use **p = N / free_cells** for obstacle density and **q** for change probability.
+The CLI exposes these as `--density` and `--change-probability` (alias `--q`).
+Density chooses the obstacle count; q never changes that count.
 
-On each forecast revision, each obstacle is independently selected with
-probability `p`. A selected obstacle's entire forecast is regenerated from its
-original starting cell using speed changes (5/10/20 ticks per cell), a waypoint
-bias, or random pauses (10/20/30 ticks). Metadata records the selections. Forecast
-snapshots share a fixed time origin; revisions are not execution times, and
-regeneration does not preserve an executed prefix.
+### Initial forecast: the actual upstream generator
 
-Thus `p` is **per obstacle per forecast revision**, not the presentation's
-per-obstacle-per-time-step model. This intentionally simple initial generator
-supports deterministic experiments; a causally consistent trajectory-prediction
-simulator matching the final experimental design is a later task.
+`src/obstacle_generator.cpp` calls `generate_obstacles1()` from the pinned authors'
+`generate_obstacles.cpp`, rather than approximating it with a random walk. The
+vendored original is unchanged and SHA256-checked. At build time two observation
+hooks capture accepted paths; an injected seed replaces `random_device` while
+retaining the original `std::mt19937` and `uniform_int_distribution` sampling.
+Unused file-driver code is omitted and out-of-horizon successor accesses are
+bounded. The original release itself uses an unrecorded random seed, so this
+reproduces its procedure, not its historical random instances byte-for-byte.
+
+The upstream implementation uses:
+
+- Eight-neighbor movement (including diagonals) plus a wait successor in the
+  temporal branch. As in upstream, diagonals check the destination cell, rather
+  than prohibiting corner cutting.
+- Random obstacle starts and distinct goals. The robot query endpoints are
+  excluded from obstacle routes. Obstacle endpoints need not be globally unique
+  in the independent branch.
+- A sampled per-cell duration of 1..10 source units, or 10..100 planner ticks
+  (1..10 seconds per cell). This is a duration, not a velocity in cells/second.
+- `empty_64_64`: starts at zero and temporal breadth-first search against earlier
+  obstacle reservations, with waiting available.
+- Other paper maps: an independent spatial breadth-first route, with a sampled
+  start delay of 0..200 source units. Obstacle-obstacle overlap is allowed by this
+  upstream branch. Custom maps use this independent procedure.
+- Both endpoints of every obstacle move occupied throughout its inclusive time
+  interval; the final cell stays occupied until the source horizon ends.
+
+The upstream occupancy table uses 4,001 source samples (0..4,000). Its loader
+multiplies interval endpoints by 10. We preserve that ordering: adjacent occupied
+source samples merge before scaling, rather than leaving artificial nine-tick
+holes between them. The independent branch also marks its goal once at the
+unshifted route duration, in addition to the delayed trajectory and parking.
+That upstream quirk is retained in `extra_reservations` to make q=0 exact.
+
+Every generation reconstructs reservations from captured obstacle paths and
+asserts equality with the upstream occupancy table. Tests additionally compare
+q=0 against a separate wrapper around the unmodified generator for both branches.
+
+For a named paper map, the robot query defaults to the authors' coordinates.
+The generation horizon is always the original 40,000 planner ticks; a shorter
+`--horizon` clips that original forecast without changing how it was generated.
+All future forecasts are identical when q=0. Separate q values with the same
+seed, map and obstacle count have exactly the same initial forecast.
+
+### Updates
+
+An update occurs every `--update-interval` planner ticks (default 100 = 10 s).
+At each update, each obstacle receives a reproducible Bernoulli(q) change proposal.
+Proposal draws and modification choices are keyed by seed, revision and obstacle
+ID, independently of the initial C++ sampling. q is **per obstacle per forecast
+revision**, not per planner tick. Changing the update interval changes the
+proposal rate per second.
+
+A proposal can affect an obstacle only if it has an uncompleted route segment
+starting before the scenario horizon. It takes effect at the next route node
+strictly after the revision time. The past and any movement already in progress
+are preserved. An obstacle that has already parked remains parked. Its identity,
+original start and original goal stay fixed.
+
+Default proposal types have equal probabilities:
+
+- **Waypoint:** sample a free intermediate cell and route from the future boundary
+  through it to the original goal, using eight-neighbor spatial breadth-first
+  paths. Up to 12 waypoint candidates are attempted.
+- **Pause:** insert a 1..10 second wait at that boundary and shift the remaining
+  trajectory accordingly.
+- **Speed:** choose acceleration or deceleration with equal probability. Shorten
+  or lengthen successive moving-edge durations by 10 ticks per edge, bounded to
+  10..100 ticks. Existing waits retain their duration. This is a discrete speed
+  ramp; it does not assert a particular continuous acceleration value.
+
+`--change-modes` can isolate one type for controlled experiments. Changes that
+would exceed the source horizon, have no waypoint route, or already hit the
+speed bound are not applied. On `empty_64_64`, changes introducing a collision
+with another predicted obstacle are rejected; other maps retain the upstream
+independent policy. Thus q controls proposal probability, and the actual accepted
+change rate is measured from `events`, not assumed to equal q. Each event records
+its obstacle, revision/effective ticks, parameters and outcome.
+
+Each forecast saves full reservations plus the individual obstacle node sequences
+and source extras. Reservation prefixes through every revision time are tested
+for equality before and after updates. The planner query remains the fixed
+reference start and start tick; advancing the robot is still a separate extension.
+
+The previous `grid-walk-v1` saved scenarios remain readable, but are historical
+smoke tests and are not regenerated by the new `generate` command.

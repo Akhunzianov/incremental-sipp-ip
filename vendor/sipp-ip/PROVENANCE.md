@@ -27,3 +27,12 @@ renamed main function. It supplies normalized reservations and blocks time after
 the finite horizon to compare costs. It is only a verification adapter, limited
 to stopped starts, maps up to 128x128, and horizons below 39999 ticks. It does
 not apply our expansion limit and should only be used on small tests.
+
+
+`src/generate_obstacles.cpp` is now also preserved verbatim, with SHA256
+`75f66e8c6e3b5dde32578255505dbefc9c240c585bcfb9ac8d12d95119f9a622`.
+The new generator adapter compiles a build-directory derivative with route-capture
+hooks, deterministic seeding, adjusted include location and guards against
+out-of-horizon accesses. No vendored original is edited. The q=0 reference test
+uses a separate wrapper around this original file, without route instrumentation.
+See `docs/model.md` for retained upstream occupancy quirks and the q>0 extension.

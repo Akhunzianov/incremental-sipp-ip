@@ -48,6 +48,7 @@ def viewer_data(directory, repetition=0):
         except (ValueError, KeyError, TypeError) as error:
             validation = f"Validation failed: {error}"
         forecasts.append({"id": forecast["id"], "events": forecast.get("events", []),
+                          "revision_tick": forecast.get("revision_tick"),
                           "paper": forecast.get("paper"),
                           "cells": merge_reservations(forecast["reservations"]),
                           "result": result, "validation": validation,
