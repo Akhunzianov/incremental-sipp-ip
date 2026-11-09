@@ -1,0 +1,1134 @@
+{
+  "description": "Post-proof-audit release build: correctness validation, one measured replay, no warmup; no new performance claim.",
+  "source_sha256": {
+    "src/incremental.cpp": "e843dbf64b488b8aa5c6853c1a0ee8f7bade9b78b35212b55a456cca4f2651da",
+    "src/model.hpp": "e0972b7a4617816090cc1ed49e5ed8197b1e175e5a04ea874ee63440999c5ae8",
+    "src/planner.cpp": "d8c39eb32e474bcbc03a8bd95ae7a324f2834f893741191384ccbbe698f59418"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "flags": [
+    "-std=c++17",
+    "-O3",
+    "-DNDEBUG",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic"
+  ],
+  "binary_sha256": {
+    "baseline": "6c4a95a867ffa9fc24fdc4a16d3cb90a6779d4afc54753541e0eeaa15269bd3e",
+    "incremental": "a5d7545fbe0293dab4591606c278c115371e71ba7e2e832f3918b91108e5689a"
+  },
+  "test_command": "make test",
+  "tests_passed": 52,
+  "random_oracle_queries": 1280,
+  "new_audited_random_queries": 480,
+  "audited_interruption_queries": 25,
+  "audited_owner_loss_queries": 7,
+  "historical_rollover_reproduction": {
+    "commit": "9104921",
+    "actual_ticks": 100,
+    "expected_ticks": 126,
+    "fixed_ticks": 126
+  },
+  "suite_config": {
+    "source_suite": "/home/renat/spbu-bachelor/sem7/heuristics/incremental_sipp_ip/baseline/runs/q-comparison",
+    "repeats": 1,
+    "warmups": 0,
+    "max_expansions": 2000000,
+    "timeout": 180
+  },
+  "queries_matched": 150,
+  "cases": [
+    {
+      "map": "empty_64_64",
+      "q": 0,
+      "scenario_sha256": "63253a1c9eebbf95c6caa2564346d41898a1000c8c289ea50480a2becfb67caf",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        }
+      ]
+    },
+    {
+      "map": "empty_64_64",
+      "q": 0.1,
+      "scenario_sha256": "68e017c77c0a5bd82c601a6e2a874c28d61d3059f5a03c053714ac6899e65396",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        }
+      ]
+    },
+    {
+      "map": "empty_64_64",
+      "q": 0.25,
+      "scenario_sha256": "3da8477bd69809afcbb4149bfdd3974cc9c67dd5e0c129c00ae0f46df33039e3",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        }
+      ]
+    },
+    {
+      "map": "empty_64_64",
+      "q": 0.5,
+      "scenario_sha256": "fa09abe55a7c985fbc26ecfbedfc474454755499ea39d4c2eb1143202f7ff7bc",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        }
+      ]
+    },
+    {
+      "map": "empty_64_64",
+      "q": 1,
+      "scenario_sha256": "5e21c514d6c268e4c3738b561b3cf58ff740dc34302cea448da2a95e100f968b",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 711
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 741
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 741
+        }
+      ]
+    },
+    {
+      "map": "room-64-64-16",
+      "q": 0,
+      "scenario_sha256": "b67f208d0b56b3c4233ece55149781f1444997c9146633ba7632a6af2ed7b2eb",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        }
+      ]
+    },
+    {
+      "map": "room-64-64-16",
+      "q": 0.1,
+      "scenario_sha256": "728779142dcdd09af530b7f9c5e7d8eb5661df7ce1fd57aeef1007e511af942e",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1871
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1871
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1891
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1891
+        }
+      ]
+    },
+    {
+      "map": "room-64-64-16",
+      "q": 0.25,
+      "scenario_sha256": "a6be69c637ba55627c4ee4443f03be31a657dea94d6e3f4cdc19dc6c8128b1c5",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1956
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1871
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1866
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1871
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2006
+        }
+      ]
+    },
+    {
+      "map": "room-64-64-16",
+      "q": 0.5,
+      "scenario_sha256": "50b94d777851574b98783147d79195b230a880cd2c3fd40766deb3522bc9b73e",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2036
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2036
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1696
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1696
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1646
+        }
+      ]
+    },
+    {
+      "map": "room-64-64-16",
+      "q": 1,
+      "scenario_sha256": "b268b48e88a013cf43d5f4e9f438defa992e3551c6e700366601b9976c8ddea2",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2031
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1493
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2136
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1440
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1430
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1471
+        }
+      ]
+    },
+    {
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0,
+      "scenario_sha256": "22c7410ddadf0347e0232eaedd038eb620be9df49aa88978c7397035e47510c6",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        }
+      ]
+    },
+    {
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.1,
+      "scenario_sha256": "ecc6db77560d19e2e9468f1c73aa5ded9785b09436a0da7489ac719f58f055f7",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        }
+      ]
+    },
+    {
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.25,
+      "scenario_sha256": "9ec61961792e8bb683765d72e358a676caf0f20b9c209118b3a884c1aaa6f823",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        }
+      ]
+    },
+    {
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.5,
+      "scenario_sha256": "163f5201c48bb4c93bb83a3b3dca96aad6d89f80f2489a0814c36ec179e2a2d8",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1346
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1345
+        }
+      ]
+    },
+    {
+      "map": "warehouse-10-20-10-2-2",
+      "q": 1,
+      "scenario_sha256": "7e57444aa71dceeb62c43991e08c1e44ab5ee8736b23e91cc783540201b9bc9d",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1405
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1366
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1376
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1351
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 1345
+        }
+      ]
+    },
+    {
+      "map": "random128",
+      "q": 0,
+      "scenario_sha256": "32b888099554ad57fb7393959ab3f955e9f43213f5f549222ad5ca21e0182887",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        }
+      ]
+    },
+    {
+      "map": "random128",
+      "q": 0.1,
+      "scenario_sha256": "aecb2c6912d59ccee2c2def1f6b803a2429e7ce421a432ee531c251924ae9d2c",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2166
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2166
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2166
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2186
+        }
+      ]
+    },
+    {
+      "map": "random128",
+      "q": 0.25,
+      "scenario_sha256": "2bb966c8dcc3c850686bb7d295dc4ecb01d4ab295a33f9c863571d95abc6db6d",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2271
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2271
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2271
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2271
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2241
+        }
+      ]
+    },
+    {
+      "map": "random128",
+      "q": 0.5,
+      "scenario_sha256": "af1162bc3bdf4bf64c0d6b82b732d99402f27517720d91f5e3251474705850f2",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2271
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2211
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2211
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2237
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2322
+        }
+      ]
+    },
+    {
+      "map": "random128",
+      "q": 1,
+      "scenario_sha256": "961a8c8d6f80b1f332a686464a4b2ed775e01762293f5edd9c0244f14980745b",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2226
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2356
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2436
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2191
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2421
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2246
+        }
+      ]
+    },
+    {
+      "map": "Sydney_2_256",
+      "q": 0,
+      "scenario_sha256": "0c278634bcad6d8dc8a4df0e095cf2c6d773d5e04117c047a44301974b803da2",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        }
+      ]
+    },
+    {
+      "map": "Sydney_2_256",
+      "q": 0.1,
+      "scenario_sha256": "458de3fb126565399aaefa0a94b41e33e6d9c126ef738e45d54113050c2fe910",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        }
+      ]
+    },
+    {
+      "map": "Sydney_2_256",
+      "q": 0.25,
+      "scenario_sha256": "062a71d35688efae8b77724f1ffdbf5d448cf5fe8fcc9c87e39a80445311aac3",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2911
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2870
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2911
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2891
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2896
+        }
+      ]
+    },
+    {
+      "map": "Sydney_2_256",
+      "q": 0.5,
+      "scenario_sha256": "1dc06d9253bf44ce90c9e0b8c786acedce76621c8bdac72ebc8ccb42b3d83b3c",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2911
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2831
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2901
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2926
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        }
+      ]
+    },
+    {
+      "map": "Sydney_2_256",
+      "q": 1,
+      "scenario_sha256": "34f5bd8808978b17de9dd4274321f249ba7055fcedc44060b017131b925dc835",
+      "queries": [
+        {
+          "forecast_id": "p0",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2756
+        },
+        {
+          "forecast_id": "p1",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2781
+        },
+        {
+          "forecast_id": "p2",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2856
+        },
+        {
+          "forecast_id": "p3",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2951
+        },
+        {
+          "forecast_id": "p4",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2881
+        },
+        {
+          "forecast_id": "p5",
+          "verdict": "matched",
+          "status": "solved",
+          "cost_ticks": 2851
+        }
+      ]
+    }
+  ],
+  "sanitizer": {
+    "flags": [
+      "-std=c++17",
+      "-O1",
+      "-g",
+      "-DSIPP_REPAIR_VERIFY",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer"
+    ],
+    "environment": {
+      "ASAN_OPTIONS": "detect_leaks=0"
+    },
+    "queries_passed": 512,
+    "coverage": "480 randomized, 7 owner-loss/root/compaction, 25 interrupted/resumed queries; invariant audits enabled",
+    "leak_detection": false
+  }
+}

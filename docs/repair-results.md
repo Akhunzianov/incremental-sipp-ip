@@ -32,7 +32,7 @@ oracle and trajectory validator remain separate from both search implementations
 
 ## Validation
 
-The automated suite has 48 passing tests. Repair tests include 800 randomized
+At this measurement milestone, the automated suite had 48 passing tests. Repair tests include 800 randomized
 queries (80 sequences of ten forecasts) checked against both full replanning and
 the independent oracle, plus targeted tests for empty projections, obstacle
 insertion/removal, root replacement, invalid starts, one-tick boundaries,
@@ -44,7 +44,10 @@ artifacts and reject resuming against changed inputs.
 An AddressSanitizer/UndefinedBehaviorSanitizer build also matched baseline results
 and validated paths on 165 queries. Leak detection was disabled because of the
 execution environment; this is not a leak-check claim. These checks provide
-empirical evidence, not a completed formal proof for arbitrary inputs.
+empirical evidence. The subsequent [correctness audit](repair-correctness.md)
+adds a mathematical proof for the finite model, executable invariant checks and
+a stamp-rollover fix. These performance measurements and their source hashes
+remain historical results for commit `9104921`.
 
 ## Five-map measurements
 

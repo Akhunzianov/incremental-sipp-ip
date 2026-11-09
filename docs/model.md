@@ -77,9 +77,11 @@ occupancy of every swept cell, continuity, and final state. It uses concrete
 actions and does not perform interval projection. The oracle additionally
 enumerates `(r,c,o,v,t)` states and one-tick waits with Dijkstra on small cases.
 
-The current implementation is derived from SIPP-IP but has not received a new
-formal proof. The test suite checks its equivalence on bounded cases and against
-the authors' implementation; do not present those tests as a proof.
+The [correctness argument](repair-correctness.md) proves the implemented
+interval/witness algorithm's properties for this finite discrete model, including
+repair, waiting, exact-state suppression and stopping. It is not machine-checked
+verification of the C++ program. Bounded oracle comparisons and invariant audits
+support the code-to-proof correspondence; they are not substitutes for the proof.
 
 ## Scenario JSON v1
 

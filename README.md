@@ -62,6 +62,13 @@ five-map queries matched, but most changing-forecast cases were slower than
 full replanning. This prototype establishes tested repair behavior; further work
 is needed to make dependency maintenance pay off on those cases.
 
+[The correctness proof](docs/repair-correctness.md) establishes soundness,
+termination, completeness and earliest-arrival optimality in the fixed-start,
+finite discrete model, assuming sufficient resources. It also documents the
+stamp-rollover bug found and fixed during the audit. `make test` includes an
+expensive verification build that checks the proof invariants; release builds
+omit these audits. The proof is mathematical, not machine-checked verification.
+
 ## Generate and measure forecast updates
 
 ```sh

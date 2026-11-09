@@ -1,9 +1,8 @@
 # Proposed repair rules for fixed-start Incremental SIPP-IP
 
 Status: implemented as a first prototype in [src/incremental.cpp](../src/incremental.cpp).
-See [implementation and measured results](repair-results.md). The correctness
-arguments below remain a proof plan, supported by differential tests rather than
-a completed formal proof. This design deliberately repairs whole projection
+See [implementation and measured results](repair-results.md) and the subsequent
+[correctness proof and audit](repair-correctness.md). This design deliberately repairs whole projection
 results when their witnesses change; finer interval surgery is a later optimization.
 
 ## 1. Decision and scope
@@ -101,9 +100,11 @@ statically impossible primitive can be omitted because the spatial graph is fixe
    record for each statically valid outgoing primitive, including failed ones.
 4. **Dormant alternatives survive.** CLOSED suppression changes scheduling, not
    the stored reachable interval or its witness.
-5. **Frontier coverage.** After repair, any reachable state not already covered
-   by live expansions has an appropriate search frontier ancestor. No repair
-   work capable of creating such an ancestor is hidden from the stopping test.
+5. **Frontier coverage.** After repair, every live non-goal raw label has OPEN
+   tasks covering all of its timestamps outside CLOSED. Goal witnesses instead
+   update the incumbent; they need not be expanded or queued. Together with
+   complete cached operators, this supplies a frontier on every feasible path
+   to its first goal unless an equally early goal witness already exists.
 6. **Independent path witnesses.** CLOSED coverage does not serve as a label's
    parent proof. Each new label refers to an existing source witness, so its
    producer ancestry is acyclic by creation order.
@@ -335,10 +336,13 @@ invalidated arrival from the root, keep neither segment merely because A and B
 appear in each other's aggregate predecessor sets. Retire their concrete witness
 chain, then require new root-derived witnesses.
 
-## 8. Why this is plausibly correct, and what needs proving
+## 8. Correctness proof and executable obligations
 
-This is a proof plan for the implementation, not an assertion that it already
-inherits the SIPP-IP theorem.
+The following records the original proof obligations. They are now addressed by
+the detailed lemmas and theorem in [repair-correctness.md](repair-correctness.md),
+including a correction to the old overly broad global-frontier wording. The
+argument is for this implementation's finite model and does not simply inherit
+the original SIPP-IP theorem.
 
 **Soundness.** Prove the projection contract, waiting closure and backward
 departure reconstruction. Induct over producer ancestry to establish witness
@@ -367,9 +371,11 @@ primitive set and exact CLOSED coverage. Within a consistent resumed search,
 expansion processes only previously uncovered configuration/time pieces. The
 batch retirement graph has finite stored records and visited/live flags.
 
-These arguments require implementation-level definitions of suppression,
-fingerprints, owner withdrawal, queue normalization and reconstruction. They
-should become separate lemmas and code assertions, not informal assumptions.
+The proof gives implementation-level definitions of suppression, fingerprints,
+owner withdrawal, queue normalization and reconstruction. The optional
+`SIPP_REPAIR_VERIFY` build audits their invariants at repair/search boundaries;
+independent oracle tests provide additional bounded evidence. The mathematical
+proof and its C++ correspondence have not been machine-checked.
 
 ## 9. Implementation order in this repository
 

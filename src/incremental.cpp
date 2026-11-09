@@ -40,6 +40,10 @@ struct Incremental {
     RepairStats stats;
     double diff_us=0,repair_us=0,compaction_us=0;
 
+    static int storage_id(size_t size){
+        if(size>=static_cast<size_t>(std::numeric_limits<int>::max()))throw std::length_error("repair storage index limit exceeded");
+        return static_cast<int>(size);
+    }
     explicit Incremental(Input&& input):env(std::move(input)) {
         int n=env.h*env.w;
         closed.resize(n*8);candidates.resize(n*8);owners.resize(n*8);watch.resize(n);
@@ -84,7 +88,7 @@ struct Incremental {
         for(auto [a,b]:pieces){push_task(id,a,b);if(reactivation)++stats.reactivated;}
     }
     int add_label(Node n,int producer){
-        int id=static_cast<int>(labels.size());
+        int id=storage_id(labels.size());
         Label l;l.n=n;l.producer=producer;labels.push_back(std::move(l));
         candidates[key(n)].push_back(id);++stats.created;
         schedule(id);return id;
@@ -110,8 +114,7 @@ struct Incremental {
             if(std::find(seen.begin(),seen.begin()+count,index)==seen.begin()+count){seen[count++]=index;watch[index].push_back(id);}
         }
     }
-    std::vector<Output> project(int owner,int action){
-        ++stats.search.projections;
+    std::vector<Output> project_result(int owner,int action)const{
         // These inputs are copied: projection installation may grow the stores.
         const auto e=expansions[owner];const auto n=labels[e.label].n;
         const auto& p=primitives[n.o][n.v][action];
@@ -130,6 +133,10 @@ struct Incremental {
             if(lo<=hi)result.push_back({lo,hi,a,b});
         }
         return result;
+    }
+    std::vector<Output> project(int owner,int action){
+        ++stats.search.projections;
+        return project_result(owner,action);
     }
     bool fingerprint_equal(int id,const std::vector<Output>& outputs)const{
         const auto& r=records[id];
@@ -152,14 +159,14 @@ struct Incremental {
     }
     void expand(int label,int lo,int hi){
         const auto n=labels[label].n;
-        int owner=static_cast<int>(expansions.size());
+        int owner=storage_id(expansions.size());
         expansions.push_back({label,lo,hi});labels[label].owners.push_back(owner);owners[key(n)].push_back(owner);
         auto& c=closed[key(n)];c.push_back({lo,hi});c=normalize(c);
         ++stats.search.expansions;
         // Register the full footprint before any dynamic-obstacle early return.
         for(int action=0;action<static_cast<int>(primitives[n.o][n.v].size());++action){
             if(!static_valid(owner,action))continue;
-            int id=static_cast<int>(records.size());records.push_back({owner,action,{}});
+            int id=storage_id(records.size());records.push_back({owner,action,{}});
             expansions[owner].records[action]=id;register_watch(id);
             install(id,project(owner,action));
         }
@@ -206,7 +213,13 @@ struct Incremental {
         ++stats.compactions;compaction_us+=std::chrono::duration<double,std::micro>(Clock::now()-begin).count();
     }
     bool update(Input&& next){
-        stats={};diff_us=repair_us=compaction_us=0;++epoch;
+        stats={};diff_us=repair_us=compaction_us=0;
+        if(++epoch==0){
+            // Old stamps (including the zero used after compaction) must not
+            // suppress the first affected projection after unsigned rollover.
+            for(auto& r:records)r.stamp=0;
+            epoch=1;
+        }
         auto begin=Clock::now();std::vector<int> cells;
         for(int i=0;i<env.h*env.w;++i)if(env.blocked[i]!=next.blocked[i])cells.push_back(i);
         env.limit=next.limit;
@@ -282,6 +295,109 @@ struct Incremental {
         if(t>env.start)result.push_back({"wait",env.sr,env.sc,env.so,env.sv,env.start,t,env.sr,env.sc,env.so,env.sv});
         std::reverse(result.begin(),result.end());return result;
     }
+#ifdef SIPP_REPAIR_VERIFY
+    // Expensive proof obligations checked only in the verification build.
+    // This is an invariant audit, not an independent optimality oracle.
+    void verify_invariants()const{
+        auto require=[](bool ok,const char* message){if(!ok)throw std::logic_error(message);};
+        for(const auto& by_velocity:primitives)for(const auto& ps:by_velocity)for(const auto& p:ps){
+            require(p.duration>0&&p.duration>=5*(std::abs(p.dr)+std::abs(p.dc)),"heuristic primitive bound");
+            bool endpoint=false;
+            for(const auto& t:p.touches){
+                require(0<=t.first&&t.first<=t.last&&t.last<=p.duration,"touch offset bounds");
+                endpoint|=t.dr==p.dr&&t.dc==p.dc&&t.last==p.duration;
+            }
+            require(endpoint&&p.touches.size()<=5,"endpoint/watch primitive contract");
+        }
+        std::vector<int> indexed(labels.size()),produced(labels.size()),owned(expansions.size()),ledger(expansions.size());
+        std::vector<std::vector<int>> watched(records.size());
+        for(size_t k=0;k<candidates.size();++k)for(int id:candidates[k]){
+            require(id>=0&&static_cast<size_t>(id)<labels.size(),"candidate handle");
+            if(labels[id].live){require(key(labels[id].n)==static_cast<int>(k),"candidate key");++indexed[id];}
+        }
+        for(size_t c=0;c<watch.size();++c)for(int id:watch[c]){
+            require(id>=0&&static_cast<size_t>(id)<records.size(),"watch handle");
+            if(records[id].live)watched[id].push_back(static_cast<int>(c));
+        }
+        for(size_t k=0;k<owners.size();++k){
+            Intervals coverage;long long length=0;
+            for(int id:owners[k]){
+                require(id>=0&&static_cast<size_t>(id)<expansions.size(),"owner handle");
+                const auto& e=expansions[id];if(!e.live)continue;
+                require(labels[e.label].live&&key(labels[e.label].n)==static_cast<int>(k),"owner key/source");
+                ++owned[id];coverage.push_back({e.lo,e.hi});length+=e.hi-e.lo+1;
+            }
+            coverage=normalize(coverage);
+            require(coverage==closed[k],"CLOSED ownership equality");
+            for(auto [a,b]:coverage)length-=b-a+1;
+            require(length==0,"live expansion coverage overlaps");
+        }
+        for(size_t id=0;id<records.size();++id)if(records[id].live){
+            const auto& r=records[id];const auto& e=expansions[r.owner];
+            require(e.live&&labels[e.label].live&&e.records[r.action]==static_cast<int>(id),"projection owner");
+            require(fingerprint_equal(static_cast<int>(id),project_result(r.owner,r.action)),"current projection fingerprint");
+            const auto& n=labels[e.label].n;std::vector<int> expected;
+            for(const auto& t:primitives[n.o][n.v][r.action].touches)expected.push_back(cell(n.r+t.dr,n.c+t.dc));
+            auto canonical=[](std::vector<int>& v){std::sort(v.begin(),v.end());v.erase(std::unique(v.begin(),v.end()),v.end());};
+            canonical(expected);canonical(watched[id]);require(expected==watched[id],"complete projection watches");
+            for(int child:r.outputs){
+                require(labels[child].live&&labels[child].producer==static_cast<int>(id),"output producer");++produced[child];
+            }
+        }
+        for(size_t id=0;id<expansions.size();++id)if(expansions[id].live){
+            const auto& e=expansions[id];const auto& n=labels[e.label].n;
+            require(labels[e.label].live&&!goal(n)&&n.lo<=e.lo&&e.lo<=e.hi&&e.hi<=n.hi&&owned[id]==1,"expansion domain");
+            for(int a=0;a<static_cast<int>(primitives[n.o][n.v].size());++a){
+                int rid=e.records[a];
+                if(static_valid(static_cast<int>(id),a))require(rid>=0&&records[rid].live&&records[rid].owner==static_cast<int>(id)&&records[rid].action==a,"missing outgoing projection");
+                else require(rid<0,"statically impossible record");
+            }
+        }
+        std::vector<Intervals> pending(labels.size());auto heap=open;
+        while(!heap.empty()){
+            const auto task=heap.top();heap.pop();int id=std::get<3>(task),a=std::get<4>(task),b=std::get<5>(task);
+            require(id>=0&&static_cast<size_t>(id)<labels.size(),"OPEN handle");
+            const auto& l=labels[id];if(!l.live||l.generation!=std::get<6>(task))continue;
+            require(l.n.lo<=a&&a<=b&&b<=l.n.hi,"OPEN domain");
+            require(std::get<0>(task)==a+5*distance(l.n.r,l.n.c)&&std::get<1>(task)==distance(l.n.r,l.n.c)&&std::get<2>(task)==-b,"OPEN key");
+            pending[id].push_back({a,b});
+        }
+        int best=std::numeric_limits<int>::max();
+        for(size_t id=0;id<labels.size();++id)if(labels[id].live){
+            const auto& l=labels[id];const auto& n=l.n;
+            require(indexed[id]==1&&env.start<=n.lo&&n.lo<=n.hi&&n.hi<=env.horizon,"label domain/index");
+            require(env.grid[n.r][n.c]=='.'&&subtract({{n.lo,n.hi}},env.blocked[cell(n.r,n.c)])==Intervals{{n.lo,n.hi}},"label occupancy");
+            if(n.v==0)require(n.hi==safe_end(n.r,n.c,n.lo),"stopped waiting closure");
+            if(n.parent<0){
+                require(static_cast<int>(id)==root&&l.producer<0&&produced[id]==0,"unique root");
+                require(std::tie(n.r,n.c,n.o,n.v,n.lo)==std::tie(env.sr,env.sc,env.so,env.sv,env.start),"root configuration");
+                require(n.hi==(env.sv==0?safe_end(env.sr,env.sc,env.start):env.start),"root interval");
+            }else{
+                require(n.parent<static_cast<int>(id)&&labels[n.parent].live&&l.producer>=0&&produced[id]==1,"rooted acyclic provenance");
+                const auto& r=records[l.producer];const auto& e=expansions[r.owner];
+                require(r.live&&e.live&&e.label==n.parent&&r.action==n.action,"label witness");
+                const auto& parent=labels[n.parent].n;const auto& p=primitives[parent.o][parent.v][n.action];
+                require(n.r==parent.r+p.dr&&n.c==parent.c+p.dc&&n.o==p.orientation&&n.v==p.velocity,"label endpoint");
+                require(e.lo<=n.dep_lo&&n.dep_lo<=n.dep_hi&&n.dep_hi<=e.hi&&n.lo==n.dep_lo+p.duration,"departure witness");
+                require(n.hi==(n.v==0?safe_end(n.r,n.c,n.dep_hi+p.duration):n.dep_hi+p.duration),"arrival/wait witness");
+            }
+            for(int eid:l.owners)if(expansions[eid].live){require(expansions[eid].label==static_cast<int>(id),"label owner ledger");++ledger[eid];}
+            if(goal(n)){best=std::min(best,n.lo);continue;}
+            auto uncovered=subtract({{n.lo,n.hi}},closed[key(n)]);
+            require(subtract(uncovered,normalize(pending[id])).empty(),"lost frontier coverage");
+            if(completed){
+                if(last_status=="solved")for(auto [a,b]:uncovered){(void)b;require(a+5*distance(n.r,n.c)>=upper,"premature optimality certificate");}
+                else require(uncovered.empty(),"premature infeasibility certificate");
+            }
+        }
+        for(size_t id=0;id<expansions.size();++id)if(expansions[id].live)require(ledger[id]==1,"missing owner ledger");
+        require(best==upper,"incumbent minimum");
+        require((best==std::numeric_limits<int>::max())==(incumbent<0),"incumbent presence");
+        if(incumbent>=0)require(labels[incumbent].live&&goal(labels[incumbent].n)&&labels[incumbent].n.lo==upper,"incumbent witness");
+        require(root<0?safe_end(env.sr,env.sc,env.start)<env.start:labels[root].live,"root validity");
+        if(completed)require(last_status==(root<0?"invalid_start":incumbent<0?"no_path":"solved"),"completed status");
+    }
+#endif
 };
 
 double micros(Clock::time_point a,Clock::time_point b){return std::chrono::duration<double,std::micro>(b-a).count();}
@@ -304,7 +420,13 @@ int main(){
         if(!planner||!planner->same_query(input))planner=std::make_unique<Incremental>(std::move(input));
         else reuse=planner->update(std::move(input));
         auto repaired=Clock::now();
+#ifdef SIPP_REPAIR_VERIFY
+        planner->verify_invariants();
+#endif
         auto answer=reuse?std::make_pair(planner->last_status,planner->incumbent):planner->search();
+#ifdef SIPP_REPAIR_VERIFY
+        planner->verify_invariants();
+#endif
         auto searched=Clock::now();
         auto steps=answer.second<0?std::vector<Step>{}:planner->reconstruct(answer.second);
         auto finished=Clock::now();const auto& p=*planner;const auto& s=p.stats;
