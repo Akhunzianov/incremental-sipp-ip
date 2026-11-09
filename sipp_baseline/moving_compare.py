@@ -11,12 +11,20 @@ from .runner import ROOT, ensure_built
 from .validation import validate
 
 
-def compare(seed, output, profile=False, on_demand=False, compact=False):
+FINAL_SEEDS = (1009, 1013, 1019, 1021, 1031)
+
+
+def compare(seed, output, profile=False, on_demand=False, compact=False, final=False):
+    if final:
+        compact = True
     archive = ROOT / 'docs' / f'moving-projections-{seed}.jsonl.gz'
     suite = ROOT / 'runs' / ('diverse-scenarios' if seed == 19 else 'threshold-fresh')
     if compact:
         on_demand = True
-    if on_demand and seed != 19:
+    if final:
+        suite = ROOT / 'runs/final-moving'
+        archive = ROOT / 'docs' / f'final-decisions-{seed}.jsonl.gz'
+    elif on_demand and seed != 19:
         suite = ROOT / 'runs/on-demand-holdout'
         archive = ROOT / 'docs' / f'on-demand-decisions-{seed}.jsonl.gz'
     binary = ROOT / 'build' / ('sipp_profile' if profile else 'sipp_ip_adaptive')
@@ -24,7 +32,9 @@ def compare(seed, output, profile=False, on_demand=False, compact=False):
     audit = on_demand and seed == 19
     if on_demand:
         candidate = 'on_demand_audit' if audit else 'on_demand'
-        commands = {candidate: [ROOT/'build'/candidate,'0','5','--suffix-fresh']}
+        commands = {}
+        if not final:
+            commands[candidate] = [ROOT/'build'/candidate,'0','5','--suffix-fresh']
         if compact:
             commands['on_demand_compact'] = [ROOT/'build/on_demand_compact','0','5','--suffix-fresh']
         if not audit:
@@ -87,16 +97,20 @@ def compare(seed, output, profile=False, on_demand=False, compact=False):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--seed',type=int,choices=[19,23,29,31,37],required=True)
+    parser.add_argument('--seed',type=int,choices=[19,23,29,31,37,*FINAL_SEEDS],required=True)
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--profile',action='store_true')
     modes.add_argument('--on-demand',action='store_true')
     modes.add_argument('--compact',action='store_true')
+    modes.add_argument('--final',action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     subprocess.run(['make','build/sipp_profile' if args.profile else 'build-adaptive'],cwd=ROOT,check=True)
     if args.profile:subprocess.run(['make','build/full_profile'],cwd=ROOT,check=True)
-    if args.compact:
+    if args.final:
+        if args.seed not in FINAL_SEEDS: parser.error('use a frozen final-study seed')
+        subprocess.run(['make','build/on_demand_compact'],cwd=ROOT,check=True)
+    elif args.compact:
         if args.seed not in (31,37): parser.error('compact comparison seeds are 31 and 37')
         subprocess.run(['make','build/on_demand','build/on_demand_compact'],cwd=ROOT,check=True)
     elif args.on_demand:
@@ -105,4 +119,4 @@ if __name__=='__main__':
         subprocess.run(['make','build/'+target],cwd=ROOT,check=True)
     elif args.seed not in (19,23,29):
         parser.error('original comparison seeds are 19, 23 and 29')
-    compare(args.seed,args.output,args.profile,args.on_demand,args.compact)
+    compare(args.seed,args.output,args.profile,args.on_demand,args.compact,args.final)

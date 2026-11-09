@@ -34,7 +34,7 @@ def metrics(episodes, method):
     return dict(episodes=len(episodes),updates=len(updates),**counts,
                 summed_episode_s=sum(episode_us)/1e6, summed_wall_s=sum(wall_us)/1e6,
                 initial_s=first_us/1e6, update_s=sum(updates)/1e6,
-                p95_update_ms=sorted(updates)[ceil(.95*len(updates))-1]/1000,
+                p95_update_ms=sorted(updates)[ceil(.95*len(updates))-1]/1000 if updates else None,
                 peak_mib=max(rss)/1024,
                 trial_totals_s=[sum(sum(e['methods'][method]['times'][i]) for e in episodes)/1e6
                                 for i in range(len(samples))])

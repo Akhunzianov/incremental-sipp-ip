@@ -1,0 +1,663 @@
+{
+  "outcomes": {
+    "arrived": 450
+  },
+  "groups": {
+    "all": {
+      "suffix_fresh": {
+        "episodes": 450,
+        "updates": 679,
+        "queries": 1129,
+        "certificates": 56,
+        "summed_episode_s": 89.275980169,
+        "summed_wall_s": 90.636586405,
+        "initial_s": 38.28027634000002,
+        "update_s": 51.020812698,
+        "p95_update_ms": 418.011,
+        "peak_mib": 149.78515625,
+        "trial_totals_s": [
+          89.496467174,
+          89.56535640400001,
+          89.12116080300001
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 450,
+        "updates": 679,
+        "queries": 1129,
+        "certificates": 56,
+        "batch_hits": 20004133,
+        "clipped_hits": 7784575,
+        "probes": 43434775,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 85.94988318700001,
+        "summed_wall_s": 87.456501481,
+        "initial_s": 40.58356205,
+        "update_s": 45.386583075,
+        "p95_update_ms": 333.147,
+        "peak_mib": 198.54296875,
+        "trial_totals_s": [
+          86.11080995699999,
+          86.01067076999999,
+          86.014114604
+        ]
+      }
+    },
+    "seed/1009": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 138,
+        "queries": 228,
+        "certificates": 11,
+        "summed_episode_s": 14.514171757,
+        "summed_wall_s": 14.780559841,
+        "initial_s": 5.9172848700000005,
+        "update_s": 8.611747057,
+        "p95_update_ms": 291.293,
+        "peak_mib": 103.671875,
+        "trial_totals_s": [
+          14.643688410999998,
+          14.552120957,
+          14.455508525
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 138,
+        "queries": 228,
+        "certificates": 11,
+        "batch_hits": 3358172,
+        "clipped_hits": 1211996,
+        "probes": 7532465,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 13.951281406,
+        "summed_wall_s": 14.234688006999999,
+        "initial_s": 6.295006730000001,
+        "update_s": 7.631073274,
+        "p95_update_ms": 309.439,
+        "peak_mib": 144.1015625,
+        "trial_totals_s": [
+          13.971144329,
+          13.968069779999999,
+          13.999652466
+        ]
+      }
+    },
+    "map/empty_64_64": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 119,
+        "queries": 209,
+        "certificates": 10,
+        "summed_episode_s": 0.724068201,
+        "summed_wall_s": 0.816779673,
+        "initial_s": 0.46781234000000027,
+        "update_s": 0.25233263,
+        "p95_update_ms": 7.70991,
+        "peak_mib": 8.72265625,
+        "trial_totals_s": [
+          0.731443144,
+          0.7277097659999999,
+          0.727212674
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 119,
+        "queries": 209,
+        "certificates": 10,
+        "batch_hits": 222611,
+        "clipped_hits": 65528,
+        "probes": 299668,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 0.693501861,
+        "summed_wall_s": 0.786883998,
+        "initial_s": 0.50313055,
+        "update_s": 0.188888195,
+        "p95_update_ms": 4.61545,
+        "peak_mib": 9.39453125,
+        "trial_totals_s": [
+          0.6969272369999999,
+          0.693326266,
+          0.695465628
+        ]
+      }
+    },
+    "misses/0": {
+      "suffix_fresh": {
+        "episodes": 72,
+        "updates": 56,
+        "queries": 128,
+        "certificates": 56,
+        "summed_episode_s": 4.740412335,
+        "summed_wall_s": 4.897451923,
+        "initial_s": 4.496656479999999,
+        "update_s": 0.24196705999999998,
+        "p95_update_ms": 21.030900000000003,
+        "peak_mib": 116.94921875,
+        "trial_totals_s": [
+          4.769250412000001,
+          4.775942304000001,
+          4.702688142
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 72,
+        "updates": 56,
+        "queries": 128,
+        "certificates": 56,
+        "batch_hits": 0,
+        "clipped_hits": 0,
+        "probes": 0,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 5.024682486,
+        "summed_wall_s": 5.196507023,
+        "initial_s": 4.78264257,
+        "update_s": 0.242630275,
+        "p95_update_ms": 21.4325,
+        "peak_mib": 133.69921875,
+        "trial_totals_s": [
+          4.983479512,
+          5.032478889,
+          5.065321634
+        ]
+      }
+    },
+    "misses/1": {
+      "suffix_fresh": {
+        "episodes": 280,
+        "updates": 280,
+        "queries": 560,
+        "certificates": 0,
+        "summed_episode_s": 49.66308820500001,
+        "summed_wall_s": 50.538387294,
+        "initial_s": 25.30629874,
+        "update_s": 24.371121198999997,
+        "p95_update_ms": 427.477,
+        "peak_mib": 146.30859375,
+        "trial_totals_s": [
+          49.770832018,
+          49.858452502,
+          49.549366946
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 280,
+        "updates": 280,
+        "queries": 560,
+        "certificates": 0,
+        "batch_hits": 9965098,
+        "clipped_hits": 4993473,
+        "probes": 20513498,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 48.126764981,
+        "summed_wall_s": 49.094890619999994,
+        "initial_s": 26.812623890000012,
+        "update_s": 21.383998634,
+        "p95_update_ms": 348.926,
+        "peak_mib": 177.94921875,
+        "trial_totals_s": [
+          48.320418965,
+          48.157676846,
+          48.216971843
+        ]
+      }
+    },
+    "misses/3": {
+      "suffix_fresh": {
+        "episodes": 47,
+        "updates": 141,
+        "queries": 188,
+        "certificates": 0,
+        "summed_episode_s": 15.143353476,
+        "summed_wall_s": 15.294883957,
+        "initial_s": 4.21698734,
+        "update_s": 10.938302606999999,
+        "p95_update_ms": 416.648,
+        "peak_mib": 148.87109375,
+        "trial_totals_s": [
+          15.155786014,
+          15.159214012000001,
+          15.181275077
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 47,
+        "updates": 141,
+        "queries": 188,
+        "certificates": 0,
+        "batch_hits": 8634713,
+        "clipped_hits": 2107145,
+        "probes": 9532211,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 11.347055413000001,
+        "summed_wall_s": 11.519716394,
+        "initial_s": 4.469636550000001,
+        "update_s": 6.838131267,
+        "p95_update_ms": 256.977,
+        "peak_mib": 197.75,
+        "trial_totals_s": [
+          11.340246082,
+          11.327305834999999,
+          11.304948993
+        ]
+      }
+    },
+    "misses/4": {
+      "suffix_fresh": {
+        "episodes": 50,
+        "updates": 200,
+        "queries": 250,
+        "certificates": 0,
+        "summed_episode_s": 19.714717513,
+        "summed_wall_s": 19.890361514,
+        "initial_s": 4.253236299999999,
+        "update_s": 15.462110672,
+        "p95_update_ms": 415.642,
+        "peak_mib": 149.78515625,
+        "trial_totals_s": [
+          19.78608045,
+          19.757366236000003,
+          19.673421998
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 50,
+        "updates": 200,
+        "queries": 250,
+        "certificates": 0,
+        "batch_hits": 1396092,
+        "clipped_hits": 681552,
+        "probes": 13380238,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 21.439185577,
+        "summed_wall_s": 21.632056866,
+        "initial_s": 4.51087524,
+        "update_s": 16.917613399000004,
+        "p95_update_ms": 462.041,
+        "peak_mib": 198.54296875,
+        "trial_totals_s": [
+          21.454470668000003,
+          21.480974349999997,
+          21.414878834
+        ]
+      }
+    },
+    "map/room-64-64-16": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 12,
+        "summed_episode_s": 4.616477028,
+        "summed_wall_s": 4.761748976,
+        "initial_s": 1.983321699999999,
+        "update_s": 2.6230192380000004,
+        "p95_update_ms": 36.582699999999996,
+        "peak_mib": 15.30859375,
+        "trial_totals_s": [
+          4.640535610000001,
+          4.614578178,
+          4.631419079
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 12,
+        "batch_hits": 1855074,
+        "clipped_hits": 801973,
+        "probes": 3571360,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 4.442709376,
+        "summed_wall_s": 4.60311451,
+        "initial_s": 2.1066038000000002,
+        "update_s": 2.33087247,
+        "p95_update_ms": 36.5086,
+        "peak_mib": 20.86328125,
+        "trial_totals_s": [
+          4.44742449,
+          4.453754024,
+          4.456495685999999
+        ]
+      }
+    },
+    "map/warehouse-10-20-10-2-2": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 13,
+        "summed_episode_s": 3.8660181600000003,
+        "summed_wall_s": 4.058856751,
+        "initial_s": 2.0889672000000004,
+        "update_s": 1.7690838400000002,
+        "p95_update_ms": 24.5957,
+        "peak_mib": 17.30078125,
+        "trial_totals_s": [
+          3.86726041,
+          3.9085693999999997,
+          3.85453637
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 13,
+        "batch_hits": 911031,
+        "clipped_hits": 395930,
+        "probes": 1983572,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 3.7804730099999997,
+        "summed_wall_s": 3.986505755,
+        "initial_s": 2.2384371000000005,
+        "update_s": 1.53795008,
+        "p95_update_ms": 27.830099999999998,
+        "peak_mib": 21.97265625,
+        "trial_totals_s": [
+          3.82153851,
+          3.76558629,
+          3.79338473
+        ]
+      }
+    },
+    "map/random128": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 11,
+        "summed_episode_s": 14.824491779999999,
+        "summed_wall_s": 15.105968527,
+        "initial_s": 6.349151099999996,
+        "update_s": 8.47544849,
+        "p95_update_ms": 103.267,
+        "peak_mib": 42.18359375,
+        "trial_totals_s": [
+          14.81170651,
+          14.86672576,
+          14.78179078
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 11,
+        "batch_hits": 4253646,
+        "clipped_hits": 1503143,
+        "probes": 9474519,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 14.26243974,
+        "summed_wall_s": 14.583283299000001,
+        "initial_s": 6.725621599999999,
+        "update_s": 7.54384203,
+        "p95_update_ms": 112.046,
+        "peak_mib": 53.0,
+        "trial_totals_s": [
+          14.24154622,
+          14.26298999,
+          14.32795756
+        ]
+      }
+    },
+    "map/Sydney_2_256": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 10,
+        "summed_episode_s": 65.244925,
+        "summed_wall_s": 65.893232478,
+        "initial_s": 27.391024,
+        "update_s": 37.900928500000006,
+        "p95_update_ms": 480.012,
+        "peak_mib": 149.78515625,
+        "trial_totals_s": [
+          65.4455215,
+          65.44777330000001,
+          65.12620190000001
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 140,
+        "queries": 230,
+        "certificates": 10,
+        "batch_hits": 12761771,
+        "clipped_hits": 5018001,
+        "probes": 28105656,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 62.77075919999999,
+        "summed_wall_s": 63.496713919,
+        "initial_s": 29.009769,
+        "update_s": 33.7850303,
+        "p95_update_ms": 522.431,
+        "peak_mib": 198.54296875,
+        "trial_totals_s": [
+          62.9033735,
+          62.835014199999996,
+          62.740811
+        ]
+      }
+    },
+    "seed/1013": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 134,
+        "queries": 224,
+        "certificates": 12,
+        "summed_episode_s": 19.25316993,
+        "summed_wall_s": 19.530890147999997,
+        "initial_s": 8.343876,
+        "update_s": 10.909182752999998,
+        "p95_update_ms": 444.208,
+        "peak_mib": 149.75390625,
+        "trial_totals_s": [
+          19.341119005000003,
+          19.194927884000002,
+          19.27140787
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 134,
+        "queries": 224,
+        "certificates": 12,
+        "batch_hits": 4258432,
+        "clipped_hits": 1657110,
+        "probes": 9210376,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 18.481585354,
+        "summed_wall_s": 18.794210332,
+        "initial_s": 8.84019785,
+        "update_s": 9.660885628,
+        "p95_update_ms": 381.498,
+        "peak_mib": 195.9609375,
+        "trial_totals_s": [
+          18.561862669999996,
+          18.481521147,
+          18.467784986
+        ]
+      }
+    },
+    "seed/1019": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 137,
+        "queries": 227,
+        "certificates": 12,
+        "summed_episode_s": 20.284993028,
+        "summed_wall_s": 20.560466678,
+        "initial_s": 8.793426879999998,
+        "update_s": 11.511858084999998,
+        "p95_update_ms": 447.029,
+        "peak_mib": 149.4453125,
+        "trial_totals_s": [
+          20.282382638,
+          20.451672605,
+          20.228937694
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 137,
+        "queries": 227,
+        "certificates": 12,
+        "batch_hits": 4348198,
+        "clipped_hits": 1803671,
+        "probes": 9559423,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 19.604446378,
+        "summed_wall_s": 19.911684138000002,
+        "initial_s": 9.27040602,
+        "update_s": 10.329250114,
+        "p95_update_ms": 446.834,
+        "peak_mib": 197.78125,
+        "trial_totals_s": [
+          19.66126507,
+          19.606573125999997,
+          19.556344633
+        ]
+      }
+    },
+    "misses/2": {
+      "suffix_fresh": {
+        "episodes": 1,
+        "updates": 2,
+        "queries": 3,
+        "certificates": 0,
+        "summed_episode_s": 0.014408639999999999,
+        "summed_wall_s": 0.015501717,
+        "initial_s": 0.00709748,
+        "update_s": 0.00731116,
+        "p95_update_ms": 3.76516,
+        "peak_mib": 6.26953125,
+        "trial_totals_s": [
+          0.014518280000000001,
+          0.014381350000000001,
+          0.014408639999999999
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 1,
+        "updates": 2,
+        "queries": 3,
+        "certificates": 0,
+        "batch_hits": 8230,
+        "clipped_hits": 2405,
+        "probes": 8828,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 0.012194729999999999,
+        "summed_wall_s": 0.013330578,
+        "initial_s": 0.0077838000000000004,
+        "update_s": 0.0042095,
+        "p95_update_ms": 2.2584400000000002,
+        "peak_mib": 6.921875,
+        "trial_totals_s": [
+          0.012194729999999999,
+          0.01223485,
+          0.011993299999999998
+        ]
+      }
+    },
+    "seed/1021": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 135,
+        "queries": 225,
+        "certificates": 10,
+        "summed_episode_s": 18.642901730000002,
+        "summed_wall_s": 18.920981955000002,
+        "initial_s": 8.1577666,
+        "update_s": 10.494152211,
+        "p95_update_ms": 426.256,
+        "peak_mib": 149.78515625,
+        "trial_totals_s": [
+          18.621044118,
+          18.714603908999997,
+          18.649886028999997
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 135,
+        "queries": 225,
+        "certificates": 10,
+        "batch_hits": 4211053,
+        "clipped_hits": 1662483,
+        "probes": 8846075,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 17.955673334,
+        "summed_wall_s": 18.275762727000004,
+        "initial_s": 8.68155988,
+        "update_s": 9.286014151,
+        "p95_update_ms": 427.109,
+        "peak_mib": 198.54296875,
+        "trial_totals_s": [
+          17.940632094,
+          17.983973391,
+          17.999084789
+        ]
+      }
+    },
+    "seed/1031": {
+      "suffix_fresh": {
+        "episodes": 90,
+        "updates": 135,
+        "queries": 225,
+        "certificates": 11,
+        "summed_episode_s": 16.580743723999998,
+        "summed_wall_s": 16.843687783,
+        "initial_s": 7.06792199,
+        "update_s": 9.493872591999999,
+        "p95_update_ms": 305.199,
+        "peak_mib": 145.8203125,
+        "trial_totals_s": [
+          16.608233002,
+          16.652031049,
+          16.515420685000002
+        ]
+      },
+      "on_demand_compact": {
+        "episodes": 90,
+        "updates": 135,
+        "queries": 225,
+        "certificates": 11,
+        "batch_hits": 3828278,
+        "clipped_hits": 1449315,
+        "probes": 8286436,
+        "lookup_us": 0,
+        "credit_us": 0,
+        "summed_episode_s": 15.956896715,
+        "summed_wall_s": 16.240156277,
+        "initial_s": 7.49639157,
+        "update_s": 8.479359908,
+        "p95_update_ms": 322.682,
+        "peak_mib": 170.75390625,
+        "trial_totals_s": [
+          15.975905793999999,
+          15.970533326,
+          15.991247730000001
+        ]
+      }
+    }
+  }
+}
