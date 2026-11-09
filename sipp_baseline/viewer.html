@@ -15,6 +15,7 @@ button,select,input[type=number]{font:inherit;border:1px solid #c7d2d6;border-ra
 .playback{padding:15px 18px;border-top:1px solid var(--line)}.timebar{display:flex;gap:15px;align-items:center;margin-top:12px}.timebar input[type=range]{flex:1;min-width:70px}.toggles{padding-top:12px;font-size:12px;color:var(--muted)}.toggles label{display:flex;align-items:center;gap:4px}.message{min-height:24px;padding-top:10px;font-size:13px;color:var(--teal)}
 .inspector{padding:18px}.status{font-weight:650;font-size:19px;margin-bottom:4px}.metrics{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px;margin:20px 0}.metrics dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}.metrics dt{color:var(--muted)}.rule{border:0;border-top:1px solid var(--line);margin:18px 0}.cell-description{font-size:12px;max-height:125px;overflow:auto;white-space:pre-wrap}.action-list{list-style:none;padding:0;margin:0;max-height:255px;overflow:auto}.action-list li button{width:100%;border:0;border-radius:0;text-align:left;display:flex;justify-content:space-between;gap:8px;padding:6px;font-size:12px;background:transparent}.action-list li.active button{background:#e9f3f4;color:#08675f}.action-list li button:hover{background:#f0f4fb}.comparison{margin-top:24px;padding:20px}.comparison-heading{display:flex;justify-content:space-between;gap:15px}.chart{display:flex;align-items:stretch;gap:7px;height:170px;border-bottom:1px solid var(--line);margin-top:18px;overflow-x:auto;padding-top:28px}.bar-item{flex:1;min-width:64px;border:0;border-radius:0;padding:0 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:none;position:relative}.bar-item .bar{width:min(65%,58px);min-height:2px;background:#c0d3ee;border-radius:3px 3px 0 0}.bar-item.selected .bar{background:var(--blue)}.bar-item .value{font-size:11px;margin-bottom:5px}.bar-item .name{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;height:25px;padding-top:5px}.footer{margin-top:18px;font-size:12px;color:var(--muted)}.warning{color:#a12e2f}.empty{padding:8px 0;color:var(--muted);font-size:13px}
 @media(max-width:900px){main{padding:20px 15px}.layout{grid-template-columns:1fr}.inspector{display:block}.action-list{max-height:200px}header{align-items:flex-start}header>div:last-child{max-width:180px}h1{font-size:25px}}
+.embedded main{padding:8px}.embedded header,.embedded .toolbar,.embedded .inspector,.embedded .comparison,.embedded .footer,.embedded #source-note{display:none}.embedded .layout{display:block}.embedded .playback .controls,.embedded .timebar,.embedded .toggles{display:none}.embedded .playback{padding:5px 14px}
 </style>
 </head>
 <body>
@@ -53,6 +54,7 @@ const $=id=>document.getElementById(id);
 const canvas=$('map'),ctx=canvas.getContext('2d'),background=document.createElement('canvas');
 const rows=data.grid.length,cols=data.grid[0].length,dirs=[[0,1],[-1,0],[0,-1],[1,0]];
 const indexes=data.forecasts.map(f=>new Map(f.cells.map(([r,c,intervals])=>[r*cols+c,intervals])));
+const previousIndex=data.previous_cells?new Map(data.previous_cells.map(([r,c,intervals])=>[r*cols+c,intervals])):null;
 let selected=0,tick=data.start_tick,playing=false,lastFrame=null,fraction=0,cellChoice=data.start.slice(0,2),activeRow=-1;
 let geometry={width:0,height:0,size:1,x:0,y:0,dpr:1};
 const current=()=>data.forecasts[selected];
@@ -97,7 +99,7 @@ function draw(){
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(background,0,0);ctx.setTransform(g.dpr,0,0,g.dpr,0,0);
  const blocked=occupiedCells(indexes[selected],tick);
  if($('show-occupancy').checked){ctx.fillStyle='#d65455';for(const key of blocked)ctx.fillRect(...rect(Math.floor(key/cols),key%cols,Math.min(1,g.size/10)));}
- if($('show-changes').checked&&selected>0){const previous=occupiedCells(indexes[selected-1],tick);ctx.lineWidth=Math.max(1.5,g.size*.09);
+ if($('show-changes').checked&&(selected>0||previousIndex)){const previous=occupiedCells(selected>0?indexes[selected-1]:previousIndex,tick);ctx.lineWidth=Math.max(1.5,g.size*.09);
   for(const key of new Set([...blocked,...previous]))if(blocked.has(key)!==previous.has(key)){ctx.strokeStyle=blocked.has(key)?'#d58b24':'#298d50';ctx.strokeRect(...rect(Math.floor(key/cols),key%cols,Math.min(2,g.size/7)));}}
  const result=current().result,steps=result.steps;
  if($('show-path').checked&&result.status==='solved'){const points=[center(...data.start.slice(0,2)),...steps.map(s=>center(...s.to.slice(0,2)))];line(points,'#225ed580',Math.max(1.8,g.size*.12));}
@@ -129,7 +131,7 @@ function inspectCell(){
 function metricRow(label,value){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;$('metrics').append(dt,dd);}
 function selectForecast(index){
  stop();selected=Math.max(0,Math.min(data.forecasts.length-1,index));$('forecast').value=selected;
- $('previous').disabled=selected===0;$('next').disabled=selected===data.forecasts.length-1;$('show-changes').disabled=paper||selected===0;
+ $('previous').disabled=selected===0;$('next').disabled=selected===data.forecasts.length-1;$('show-changes').disabled=paper||(selected===0&&!previousIndex);
  const f=current(),r=f.result;$('status').textContent=title(r.status);$('status').className='status'+(r.status==='solved'?'':' warning');
  $('validation').textContent=f.validation;$('validation').className='muted'+(f.validation.startsWith('Validation failed')?' warning':'');
  $('metrics').replaceChildren();metricRow('Arrival',r.cost_ticks===null?'—':fmtTime(r.cost_ticks));metricRow('Median full replan',(f.median_total_us/1000).toFixed(3)+' ms');metricRow('Measured repetitions',f.samples);
@@ -181,6 +183,20 @@ function cellAt(event){const box=canvas.getBoundingClientRect(),x=(event.clientX
 canvas.addEventListener('mousemove',event=>{const [r,c]=cellAt(event);$('hover').textContent=r>=0&&r<rows&&c>=0&&c<cols?`Row ${r}, column ${c}`:'Click a cell to inspect its intervals';});
 canvas.addEventListener('click',event=>{const [r,c]=cellAt(event);if(r>=0&&r<rows&&c>=0&&c<cols){cellChoice=[r,c];inspectCell();draw();}});
 selectForecast(0);resize();
+if(location.hash==='#embedded'){
+ document.body.classList.add('embedded');resize();
+ window.addEventListener('message',event=>{
+  if(event.source!==window.parent||window.parent===window||event.data?.type!=='sipp-replay-set')return;
+  const message=event.data;stop();
+  if(Number.isInteger(message.forecast)&&message.forecast!==selected)selectForecast(message.forecast);
+  $('window-mode').value='full';
+  for(const id of ['time','tick'])$(id).max=data.horizon;
+  if(['1','2','4','8'].includes(String(message.zoom))&&$('zoom').value!==String(message.zoom)){$('zoom').value=String(message.zoom);resize();}
+  $('show-changes').checked=Boolean(message.changes)&&(selected>0||Boolean(previousIndex));
+  setTick(message.tick);
+ });
+ window.parent.postMessage({type:'sipp-replay-ready'},'*');
+}
 }
 startViewer().catch(error=>{document.getElementById('title').textContent='Unable to open replay';document.getElementById('subtitle').textContent=error.message;});
 </script>

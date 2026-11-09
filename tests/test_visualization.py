@@ -111,3 +111,5 @@ class VisualizationTests(unittest.TestCase):
                 self.assertEqual(decoded['forecasts'], [expected])
                 self.assertEqual(decoded['grid'], data['grid'])
                 self.assertEqual(decoded['metadata']['viewer_index'], 'viewer.html')
+                if i>1:
+                    self.assertEqual(decoded['previous_cells'],data['forecasts'][i-2]['cells'])

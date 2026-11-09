@@ -1,5 +1,6 @@
 """Upstream SIPP-IP obstacle forecasts plus causal, seeded changes (probability q)."""
 from collections import deque
+from contextlib import ExitStack
 import copy
 import hashlib
 import math
@@ -7,6 +8,7 @@ import random
 
 from .model import check_scenario, integer
 from .upstream_generator import PAPER_QUERIES, SOURCE_HASH, generate_base
+from .obstacle_routes import StaticRoutes
 
 SOURCE_HORIZON = 40000
 DIRECTIONS = ((0,1),(-1,0),(0,-1),(1,0),(1,1),(1,-1),(-1,1),(-1,-1))
@@ -67,7 +69,7 @@ def shortest_path(grid, source, goal, forbidden):
     return None
 
 
-def change_obstacle(obstacle, at_tick, mode, rng, grid, free, forbidden, horizon):
+def change_obstacle(obstacle, at_tick, mode, rng, grid, free, forbidden, horizon, route_via=None):
     """Change only after the next arrival, preserving an in-flight primitive."""
     nodes = obstacle['nodes']
     index = next((i for i,node in enumerate(nodes[:-1]) if node[2] > at_tick), None)
@@ -100,19 +102,22 @@ def change_obstacle(obstacle, at_tick, mode, rng, grid, free, forbidden, horizon
         tail = rebuilt
         event['new_edge_ticks'] = profile
     elif mode == 'waypoint':
-        first = second = None
+        path = None
         for _ in range(12):
             waypoint = rng.choice(free)
             if waypoint in ((r,c),tuple(obstacle['goal'])):
                 continue
-            first = shortest_path(grid,(r,c),waypoint,forbidden)
-            second = shortest_path(grid,waypoint,obstacle['goal'],forbidden) if first else None
-            if first and second:
+            if route_via:
+                path = route_via((r,c),waypoint,obstacle['goal'])
+            else:
+                first = shortest_path(grid,(r,c),waypoint,forbidden)
+                second = shortest_path(grid,waypoint,obstacle['goal'],forbidden) if first else None
+                path = first+second[1:] if first and second else None
+            if path:
                 break
-        if not first or not second:
+        if not path:
             event['outcome'] = 'no_waypoint_route'
             return None,event
-        path = first+second[1:]
         duration = next((b[2]-a[2] for a,b in zip(tail,tail[1:]) if a[:2]!=b[:2]), obstacle['base_step_ticks'])
         tail = [[rr,cc,boundary+j*duration] for j,(rr,cc) in enumerate(path)]
         event['waypoint'] = list(waypoint)
@@ -129,7 +134,7 @@ def change_obstacle(obstacle, at_tick, mode, rng, grid, free, forbidden, horizon
 
 def generate(grid, seed=0, updates=5, obstacles=None, change_probability=.25, horizon=40000,
              start=None, goal=None, map_name=None, density=None, update_interval=100,
-             generation_timeout=120, change_modes=('waypoint','pause','speed')):
+             generation_timeout=120, change_modes=('waypoint','pause','speed'), _base=None):
     integer(seed,'seed',0,2**32-1)
     integer(updates,'updates',0,10000)
     integer(update_interval,'update_interval',1,SOURCE_HORIZON)
@@ -159,47 +164,50 @@ def generate(grid, seed=0, updates=5, obstacles=None, change_probability=.25, ho
         obstacles = math.floor(len(cells)*density)
     obstacles = 4 if obstacles is None else obstacles
     integer(obstacles,'obstacles',0,len(cells)-len({tuple(start[:2]),tuple(goal[:2])}))
-    base = generate_base(grid,seed,obstacles,start,goal,map_name,generation_timeout)
+    base = (generate_base(grid,seed,obstacles,start,goal,map_name,generation_timeout)
+            if _base is None else copy.deepcopy(_base))
     trajectories = base['obstacles']
     reconstructed = canonical([row for o in trajectories for row in obstacle_reservations(o,SOURCE_HORIZON)],SOURCE_HORIZON)
     if reconstructed != base['reservations']:
         raise RuntimeError('captured obstacle paths disagree with the upstream reservation table')
     forbidden = {tuple(start[:2]),tuple(goal[:2])}
     free = [cell for cell in cells if cell not in forbidden]
-    forecasts = []
-    for revision in range(updates+1):
-        at_tick = revision*update_interval
-        events = []
-        for i,obstacle in enumerate(trajectories) if revision else []:
-            digest = hashlib.sha256(f'{seed}:{revision}:{i}:change'.encode()).digest()
-            rng = random.Random(int.from_bytes(digest,'big'))
-            if rng.random() >= change_probability:
-                continue
-            mode = rng.choice(change_modes)
-            if mode == 'speed':
-                mode = rng.choice(('accelerate','decelerate'))
-            candidate,event = change_obstacle(obstacle,at_tick,mode,rng,grid,free,forbidden,horizon)
-            if event is None:
-                continue
-            if candidate is not None and map_name == 'empty_64_64':
-                others = {}
-                for other in trajectories:
-                    if other['id'] == obstacle['id']:
-                        continue
-                    for rr,cc,a,b in obstacle_reservations(other,SOURCE_HORIZON):
-                        others.setdefault((rr,cc),[]).append((a,b))
-                conflict = any(max(a,event['effective_tick'])<=v and u<=b
-                               for rr,cc,a,b in obstacle_reservations(candidate,SOURCE_HORIZON)
-                               if b>=event['effective_tick'] for u,v in others.get((rr,cc),[]))
-                if conflict:
-                    event['outcome'] = 'rejected_obstacle_conflict'
-                    candidate = None
-            if candidate is not None:
-                trajectories[i] = candidate
-            events.append(event)
-        reservations = canonical([row for obstacle in trajectories for row in obstacle_reservations(obstacle,horizon)],horizon)
-        forecasts.append({'id':f'p{revision}','revision_tick':at_tick,'events':events,
-                          'obstacles':copy.deepcopy(trajectories),'reservations':reservations})
+    with ExitStack() as resources:
+        router = resources.enter_context(StaticRoutes(grid,forbidden)) if change_probability and 'waypoint' in change_modes else None
+        forecasts = []
+        for revision in range(updates+1):
+            at_tick = revision*update_interval
+            events = []
+            for i,obstacle in enumerate(trajectories) if revision else []:
+                digest = hashlib.sha256(f'{seed}:{revision}:{i}:change'.encode()).digest()
+                rng = random.Random(int.from_bytes(digest,'big'))
+                if rng.random() >= change_probability:
+                    continue
+                mode = rng.choice(change_modes)
+                if mode == 'speed':
+                    mode = rng.choice(('accelerate','decelerate'))
+                candidate,event = change_obstacle(obstacle,at_tick,mode,rng,grid,free,forbidden,horizon,router.via if router else None)
+                if event is None:
+                    continue
+                if candidate is not None and map_name == 'empty_64_64':
+                    others = {}
+                    for other in trajectories:
+                        if other['id'] == obstacle['id']:
+                            continue
+                        for rr,cc,a,b in obstacle_reservations(other,SOURCE_HORIZON):
+                            others.setdefault((rr,cc),[]).append((a,b))
+                    conflict = any(max(a,event['effective_tick'])<=v and u<=b
+                                   for rr,cc,a,b in obstacle_reservations(candidate,SOURCE_HORIZON)
+                                   if b>=event['effective_tick'] for u,v in others.get((rr,cc),[]))
+                    if conflict:
+                        event['outcome'] = 'rejected_obstacle_conflict'
+                        candidate = None
+                if candidate is not None:
+                    trajectories[i] = candidate
+                events.append(event)
+            reservations = canonical([row for obstacle in trajectories for row in obstacle_reservations(obstacle,horizon)],horizon)
+            forecasts.append({'id':f'p{revision}','revision_tick':at_tick,'events':events,
+                              'obstacles':copy.deepcopy(trajectories),'reservations':reservations})
     data['forecasts'] = forecasts
     data['metadata'] = {'seed':seed,'obstacles':obstacles,'obstacle_density':obstacles/len(cells),
                         'obstacle_density_symbol':'p',

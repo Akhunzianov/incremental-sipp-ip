@@ -128,7 +128,7 @@ compared with the authors' saved SIPP-IP results and reported both in the viewer
 and `verification.json`. Our timings are not the paper's runtimes. An
 `expansion_limit` result is inconclusive even if the source reports no solution.
 Large HTML viewers embed gzip-compressed data and require a current browser with
-native `DecompressionStream` support. Bundles above 8 MB (including Sydney) are
+native `DecompressionStream` support. Bundles above 4 MB (including Sydney) are
 automatically split into a small selection page and one self-contained viewer per
 test. Keep these HTML files together for navigation; individual test viewers can
 still be opened offline on their own.
@@ -163,7 +163,40 @@ its sampling/search runtime (default 120 s). See [the model specification](docs/
 for exact source procedures, time scaling, rejection policies and compatibility
 limits. The old random-walk demo files remain historical examples.
 
-## Run artifacts
+## Compare q across all five maps
+
+Generate matched scenarios, measure the baseline and export the comparison page:
+
+```sh
+python3 -m sipp_baseline compare-q --output runs/q-comparison-new
+```
+
+Defaults: five paper maps, q = 0 / 0.1 / 0.25 / 0.5 / 1, density p = 0.04,
+seed 7, five updates every 100 ticks, full 40,000-tick horizon, three measured
+repetitions and one warmup. Each map's initial forecast is generated once and
+shared across q, with matching initial hashes verified. These are 25 sequences
+and 150 forecast queries, not independent random repetitions of the environment.
+
+Open the resulting `index.html`. Choose a map, two q values and a forecast
+revision; shared time, playback and zoom controls synchronize both replays.
+The table compares all q values at that revision, including measured time,
+expansions, applied/proposed changes, and changed obstacle/cell counts. Standalone
+replay links and `comparison.csv` provide direct access to each result. Sydney
+and other large exports automatically split by forecast to keep files small.
+
+Override settings with `--q-values`, `--maps`, `--seed`, `--density`, `--updates`,
+`--update-interval`, `--repeats`, or `--max-expansions`. `--resume` reuses matching
+completed run directories after interruption; partial run directories must be
+kept separately or removed before retrying. `suite.json` records settings and
+completion, while each run retains its exact scenario and benchmark manifest.
+Only completed runs appear while the suite is building. This remains a
+fixed-start full-replanning baseline, with one environment seed by default.
+
+Waypoint generation uses a persistent C++ BFS worker for large maps. Tests check
+that its chosen routes match the Python reference; it changes generation speed,
+not q=0 obstacle generation or waypoint path selection.
+
+## Per-run files
 
 Each run saves:
 

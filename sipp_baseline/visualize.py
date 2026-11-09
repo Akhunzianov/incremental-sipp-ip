@@ -9,7 +9,7 @@ import statistics
 from .model import load
 from .validation import validate
 
-MAX_VIEWER_BYTES = 8_000_000
+MAX_VIEWER_BYTES = 4_000_000
 
 
 def merge_reservations(reservations):
@@ -88,9 +88,11 @@ def export_viewer(directory, output=None, repetition=0, force=False):
         if not force and any(path.exists() for path in children):
             raise ValueError("an instance viewer already exists; use --force to replace it")
         rows = []
-        for forecast, child in zip(data["forecasts"], children):
+        for index, (forecast, child) in enumerate(zip(data["forecasts"], children)):
             subset = {**data, "forecasts": [forecast],
                       "metadata": {**data.get("metadata", {}), "viewer_index": output.name}}
+            if index and not data.get('metadata', {}).get('independent_instances'):
+                subset['previous_cells'] = data['forecasts'][index-1]['cells']
             child.write_text(render_viewer(subset))
             result = forecast["result"]
             cost = '—' if result['cost_ticks'] is None else f"{result['cost_ticks']*.1:.1f} s"

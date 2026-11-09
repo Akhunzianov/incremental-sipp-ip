@@ -9,6 +9,7 @@ from .model import load, read_map
 from .runner import benchmark, build, summarize
 from .visualize import export_viewer
 from .paper import MAPS, build_paper_viewers
+from .suite import DEFAULT_Q, build_suite
 
 
 def nonnegative(text):
@@ -77,6 +78,21 @@ def main():
     paper.add_argument("--max-expansions", type=nonnegative, default=2_000_000)
     paper.add_argument("--timeout", type=positive, default=120)
     paper.add_argument("--resume", action="store_true", help="reuse matching completed map runs in an existing bundle")
+    sweep = commands.add_parser('compare-q',help='generate, measure and compare matched q sweeps on the paper maps')
+    sweep.add_argument('--output',type=Path,required=True)
+    sweep.add_argument('--maps',nargs='+',choices=MAPS,default=list(MAPS))
+    sweep.add_argument('--q-values',nargs='+',type=probability,default=list(DEFAULT_Q))
+    sweep.add_argument('--seed',type=nonnegative,default=7)
+    sweep.add_argument('--density',type=probability,default=.04)
+    sweep.add_argument('--updates',type=nonnegative,default=5)
+    sweep.add_argument('--update-interval',type=positive,default=100)
+    sweep.add_argument('--horizon',type=positive,default=40000)
+    sweep.add_argument('--repeats',type=positive,default=3)
+    sweep.add_argument('--warmups',type=nonnegative,default=1)
+    sweep.add_argument('--max-expansions',type=positive,default=2_000_000)
+    sweep.add_argument('--timeout',type=positive,default=120)
+    sweep.add_argument('--generation-timeout',type=positive,default=120)
+    sweep.add_argument('--resume',action='store_true')
     args = parser.parse_args()
     try:
         if args.command == "build":
@@ -104,6 +120,11 @@ def main():
             print(export_viewer(args.run_directory, args.output, args.repetition, args.force))
         elif args.command == "paper-viewer":
             print(build_paper_viewers(args.output, args.maps, args.max_expansions, args.timeout, args.resume))
+        elif args.command == 'compare-q':
+            print(build_suite(args.output,maps=args.maps,q_values=args.q_values,seed=args.seed,density=args.density,
+                              updates=args.updates,update_interval=args.update_interval,horizon=args.horizon,
+                              repeats=args.repeats,warmups=args.warmups,max_expansions=args.max_expansions,
+                              timeout=args.timeout,generation_timeout=args.generation_timeout,resume=args.resume))
         else:
             print(json.dumps(summarize(args.results, args.output), indent=2))
     except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:
