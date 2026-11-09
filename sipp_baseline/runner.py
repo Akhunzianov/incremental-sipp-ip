@@ -104,7 +104,8 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
                 stream.write(json.dumps(result, sort_keys=True) + "\n")
                 stream.flush()
     summary = summarize(output / "results.jsonl", output / "summary.csv")
-    aggregate = {"initial": aggregate_queries(summary[:1]), "updates": aggregate_queries(summary[1:])}
+    aggregate = ({"instances": aggregate_queries(summary)} if data.get("metadata", {}).get("independent_instances")
+                 else {"initial": aggregate_queries(summary[:1]), "updates": aggregate_queries(summary[1:])})
     (output / "aggregate.json").write_text(json.dumps(aggregate, indent=2) + "\n")
     manifest["complete"] = True
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")

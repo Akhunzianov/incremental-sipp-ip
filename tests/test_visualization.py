@@ -1,8 +1,11 @@
 import copy
+import base64
+import gzip
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from sipp_baseline.runner import ROOT
 from sipp_baseline.visualize import export_viewer, merge_reservations, viewer_data
@@ -76,3 +79,14 @@ class VisualizationTests(unittest.TestCase):
             (directory / 'results.jsonl').write_text(json.dumps(result)+'\n')
             validation = viewer_data(directory)["forecasts"][0]["validation"]
             self.assertTrue(validation.startswith('Validation failed:'))
+
+    def test_large_payload_is_losslessly_compressed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            payload = {"large": "original source intervals "*100_000}
+            with patch('sipp_baseline.visualize.viewer_data', return_value=payload):
+                output = export_viewer(directory)
+            html = output.read_text()
+            envelope = json.loads(html.split('<script id="replay-data" type="application/json">')[1].split('</script>')[0])
+            self.assertEqual(envelope['encoding'], 'gzip-base64')
+            self.assertEqual(json.loads(gzip.decompress(base64.b64decode(envelope['payload']))), payload)

@@ -1,5 +1,7 @@
 """Export a self-contained offline viewer for a saved benchmark run."""
 import json
+import base64
+import gzip
 from pathlib import Path
 import statistics
 
@@ -43,6 +45,7 @@ def viewer_data(directory, repetition=0):
         except (ValueError, KeyError, TypeError) as error:
             validation = f"Validation failed: {error}"
         forecasts.append({"id": forecast["id"], "events": forecast.get("events", []),
+                          "paper": forecast.get("paper"),
                           "cells": merge_reservations(forecast["reservations"]),
                           "result": result, "validation": validation,
                           "median_total_us": statistics.median(r["total_us"] for r in rows),
@@ -63,6 +66,9 @@ def export_viewer(directory, output=None, repetition=0, force=False):
     if output.suffix.lower() != ".html":
         raise ValueError("viewer output must have the .html extension")
     payload = json.dumps(viewer_data(directory, repetition), separators=(",", ":"), ensure_ascii=True)
+    if len(payload) > 2_000_000:
+        payload = json.dumps({"encoding": "gzip-base64", "payload": base64.b64encode(
+            gzip.compress(payload.encode(), mtime=0)).decode()})
     # JSON is embedded as data, never evaluated; escape HTML script delimiters.
     payload = payload.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
     template = Path(__file__).with_name("viewer.html").read_text()

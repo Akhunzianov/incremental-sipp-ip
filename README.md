@@ -93,7 +93,46 @@ robot marker interpolates between action endpoints for illustration; collision
 occupancy uses the exact integer-tick primitive table. After arrival its faded
 marker is a reference, not a guarantee of safe indefinite parking.
 
-## Artifacts
+## Original SIPP-IP paper samples
+
+An adapted viewer can replay the authors' released data instead of our synthetic
+forecasts. Build the five-map viewer bundle with:
+
+```sh
+python3 -m sipp_baseline paper-viewer --output runs/paper-new --max-expansions 2000000
+```
+
+Open `runs/paper-new/index.html`, choose a map, then select an obstacle count.
+To build fewer maps, use e.g. `--maps empty_64_64 room-64-64-16`. `--resume` reuses
+matching completed map runs after an interrupted build. A map run that failed
+before completing must be kept separately or removed before retrying it.
+
+The pinned upstream repository releases **35 samples**: test index 0 at seven
+densities for each of five maps. This is a released subset of the paper's 200
+instances per map/density, not the full experimental corpus. Source files are
+stored losslessly as gzip under `vendor/sipp-ip/tests/`, with original-byte SHA256
+digests. The parser preserves starts, goals, and all reservation intervals. Times
+are multiplied by 10 exactly as in the upstream `readInputs()` loader; the full
+horizon remains 40,000 planner ticks (4,000 seconds).
+
+Each sample is an independent problem, so the viewer disables the forecast-change
+overlay and labels its controls as instances. The default playback range ends at
+arrival, or previews 120 seconds for unsolved instances; select **Full horizon**
+to inspect all reservation data. No obstacle identities are present in the
+released format, so the display shows reserved cells, rather than inventing
+individual obstacle tracks.
+
+Robot trajectories are computed by our adapted planner. Arrival/feasibility are
+compared with the authors' saved SIPP-IP results and reported both in the viewer
+and `verification.json`. Our timings are not the paper's runtimes. An
+`expansion_limit` result is inconclusive even if the source reports no solution.
+Large HTML viewers embed gzip-compressed data and require a current browser with
+native `DecompressionStream` support; they remain offline, self-contained files.
+
+Sources: [paper, Empirical Evaluation](https://arxiv.org/html/2302.00776)
+and [pinned sample release](https://github.com/PathPlanning/SIPP-IP/tree/77ca7491345c00b1cec7d0b88fe96cc561e0be25/tests).
+
+## Run artifacts
 
 Each run saves:
 

@@ -8,6 +8,7 @@ from .generate import generate
 from .model import load, read_map
 from .runner import benchmark, build, summarize
 from .visualize import export_viewer
+from .paper import MAPS, build_paper_viewers
 
 
 def nonnegative(text):
@@ -64,6 +65,12 @@ def main():
     view.add_argument("--output", type=Path, help="HTML output (default: RUN_DIRECTORY/viewer.html)")
     view.add_argument("--repetition", type=nonnegative, default=0, help="trajectory repetition to display")
     view.add_argument("--force", action="store_true", help="replace an existing HTML viewer")
+    paper = commands.add_parser("paper-viewer", help="build viewers for original released SIPP-IP samples")
+    paper.add_argument("--output", type=Path, required=True)
+    paper.add_argument("--maps", nargs="+", choices=MAPS, default=list(MAPS))
+    paper.add_argument("--max-expansions", type=nonnegative, default=2_000_000)
+    paper.add_argument("--timeout", type=positive, default=120)
+    paper.add_argument("--resume", action="store_true", help="reuse matching completed map runs in an existing bundle")
     args = parser.parse_args()
     try:
         if args.command == "build":
@@ -86,6 +93,8 @@ def main():
             print(f"Saved results to {args.output}")
         elif args.command == "visualize":
             print(export_viewer(args.run_directory, args.output, args.repetition, args.force))
+        elif args.command == "paper-viewer":
+            print(build_paper_viewers(args.output, args.maps, args.max_expansions, args.timeout, args.resume))
         else:
             print(json.dumps(summarize(args.results, args.output), indent=2))
     except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:

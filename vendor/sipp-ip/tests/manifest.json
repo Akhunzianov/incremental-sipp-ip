@@ -1,0 +1,212 @@
+[
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-12077.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-12077.txt",
+    "sha256": "7289283cd1cdc99497a985dbba5aa4ba6b72a5a31c5e250b365d494fbbed980e"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-16103.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-16103.txt",
+    "sha256": "394a268c06f7ad14cd94038d2b24eaeb7caa85d38b0c545457be147c4a4bf10c"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-1932.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-1932.txt",
+    "sha256": "7475e3bef99eedd096e20a3bdfd6368007a95f95250a6db754ab9ccbf1f251d2"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-2415.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-2415.txt",
+    "sha256": "66cfb3782a14c4e41c71cedeb7cb69f8f96296ccc6b99300cc3d4e1a3b9fbf39"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-3220.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-3220.txt",
+    "sha256": "7f4cca0c26f342fd0e3442596d3bf829ddd8e05d86626e7cea15e957b7f421a5"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-4830.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-4830.txt",
+    "sha256": "771890a064b4530c48667d01f32a79aee28d2b1af6abbc875701eace7c33723f"
+  },
+  {
+    "map": "Sydney_2_256",
+    "file": "Sydney_2_256-test-0-9661.txt.gz",
+    "upstream_path": "tests/Sydney_2_256/Sydney_2_256-test-0-9661.txt",
+    "sha256": "af916f85cc622c70865a3815be4a1868322568d4f6858467050877fb7939ad73"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-1024.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-1024.txt",
+    "sha256": "768e830f31ceadf49019e4a9623b7234bd5617ba135a729e1ba2ebc1c174031e"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-1365.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-1365.txt",
+    "sha256": "c3a1bb50e870350404bba34069ac42473924ff659a786f6ac0d9471bb4133fb7"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-163.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-163.txt",
+    "sha256": "166dbd40338718cec92b383c0e599547268e33c3a7e5788bae729dca4c6794a7"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-204.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-204.txt",
+    "sha256": "b2cb8fcb8e680414a58bccc394137f59ee78d46ecee237fcc4993a4c8acbfc64"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-273.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-273.txt",
+    "sha256": "2c2933e7ded16f33ca23849da55f120e4f39ecd05a8bc6dcac600df7b79ce689"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-409.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-409.txt",
+    "sha256": "c5b60556fdb280830a62e1a130317e061d7fb09cdf8e27757985c4eb9a2998a6"
+  },
+  {
+    "map": "empty_64_64",
+    "file": "empty_64_64-test-0-819.txt.gz",
+    "upstream_path": "tests/empty_64_64/empty_64_64-test-0-819.txt",
+    "sha256": "67d32578d1fb081005993364cb97250af6d082aec17547b47e5983c68b55ab17"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-1469.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-1469.txt",
+    "sha256": "df7b5a3d618818e9aa30ffb54558fd548dca78d6558c928f0d091c061855ad79"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-2938.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-2938.txt",
+    "sha256": "7f47331d5c2456258e48b9d0e7246e4bc8cbae1b43cd97783b5c92a5ff6a9f57"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-3672.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-3672.txt",
+    "sha256": "fb50b4b45278058ae58680446fdd31debdf0b51e88c112575f4c7dfc029c3ed7"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-4897.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-4897.txt",
+    "sha256": "a9410e7ba10e34df3dc15f0732ae4493a26892142b310605b60b32224a32ade7"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-587.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-587.txt",
+    "sha256": "2fa88dbc1f4e33603df67d73137181e8a83bf165309814de316de4fc19bbf796"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-734.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-734.txt",
+    "sha256": "0a721f9db4a42a49d740e893d8bbf94f524c6e652702b787556839c881e6793c"
+  },
+  {
+    "map": "random128",
+    "file": "random128-test-0-979.txt.gz",
+    "upstream_path": "tests/random128/random128-test-0-979.txt",
+    "sha256": "b2975a0a32125cdaf755e02867a052d16fa895a17b0b2a99a01979adc751677d"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-1215.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-1215.txt",
+    "sha256": "6c94667270e0e3f5a7bab9af1a64cae77700f0b08f129678f5cb5150206928bf"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-145.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-145.txt",
+    "sha256": "f67844b6b5b61958e0d11c3c0834c7a370015424f7c85fff935e4f6e37863131"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-182.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-182.txt",
+    "sha256": "cc79df07c34c804cdc2b2e76da4f7edb5c64074b750144e9b1b065b6796d626f"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-243.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-243.txt",
+    "sha256": "72d6249aff8853ee8e875820893994a6d3ce08fc67265b7a25ec092478b271b8"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-364.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-364.txt",
+    "sha256": "591fbd3e5669d368af5d26ec68dfb121747da165ed82b1b7e49472ba356bb120"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-729.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-729.txt",
+    "sha256": "96652b1534fac54bb94d8d841970b49448e5761d315532c92a126776564e7a53"
+  },
+  {
+    "map": "room-64-64-16",
+    "file": "room-64-64-16-test-0-911.txt.gz",
+    "upstream_path": "tests/room-64-64-16/room-64-64-16-test-0-911.txt",
+    "sha256": "3264e6dcc33f1dbc2bcde6fafcc0138ffee6a5eb828ebf552ae5678b77841272"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-1955.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-1955.txt",
+    "sha256": "4abad347334a23f87ce2797165472918eae3e000e1958b827522fa2d26e3967d"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-2444.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-2444.txt",
+    "sha256": "49456480769a623feaea85acde0ae3fa7cc6c2b55f5349b4ad6d77aa9cf222e6"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-3258.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-3258.txt",
+    "sha256": "4223b6b1675050067288bf6e98ee9af7afee373fbc657e3a275d7ed7f064d22c"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-391.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-391.txt",
+    "sha256": "515f831364c380c5dd4089b1cd65bda502ea3faa7c0fee40a71b60ee388ba5d4"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-488.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-488.txt",
+    "sha256": "ca849a344d59e7d81df3e222899dffb6ee3f1e9c6c99aa5a4099daea365593b6"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-651.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-651.txt",
+    "sha256": "46724f014c958718759f92dd4be14b95861bcc46df996b08055dfa8a0708beaa"
+  },
+  {
+    "map": "warehouse-10-20-10-2-2",
+    "file": "warehouse-10-20-10-2-2-test-0-977.txt.gz",
+    "upstream_path": "tests/warehouse-10-20-10-2-2/warehouse-10-20-10-2-2-test-0-977.txt",
+    "sha256": "461d878dfbb27e82f94d623f48c41b6e4751a5ac1870adec0292a005469522ab"
+  }
+]
