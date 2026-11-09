@@ -62,3 +62,75 @@ The seed-19 replay matched full replanning on all 248 queries. The 102 episodes 
 In this single replay the 16 hits had median native time 0.66 ms versus 9.90 ms for fresh SIPP-IP on those same queries. Across all 146 updates the respective medians were 22.59 ms and 15.56 ms. These are descriptive timings from one pass with a common executed baseline trajectory. The next implementation target is rule 2 for uncertified queries.
 
 Reproduce with the moving replay command in the [threshold study](threshold-study.md), using a new output filename. [Recorded decisions and native timings](moving-suffix-pilot.jsonl.gz).
+
+## Implemented projection transfer
+
+After a suffix miss at an advanced start tick, the adaptive executable opens a
+new search generation. During that search it holds the preceding generation
+read-only and uses its existing expansion-owner index. This avoids copying
+every projection into a separate index. A bit per cell records whether its
+normalized reservations differ. Reuse requires identical map geometry and
+horizon, a live owner at the full source configuration whose departure domain
+contains the newly expanded domain, and clean dependencies for the entire
+action. Empty output lists are reusable under the same conditions.
+
+For each surviving departure component the planner clips departures before
+installing a child in the new generation. For a stopped child, the old upper
+waiting bound is still exact because the destination occupancy is identical
+and the restricted component remains in the same safe interval. The lower
+arrival bound is recalculated. OPEN, CLOSED and reconstruction parents belong
+to the new root. Projection hits save motion calculations; the planner still
+performs the expansion and allocates its new witnesses. Once the search ends
+it releases the preceding generation. The reported native time includes this
+release. Peak memory can include two search generations.
+
+In a build with both SIPP_ADAPTIVE and SIPP_REPAIR_VERIFY, every cache hit is
+recomputed and checked against the ordinary projector, including all departure
+bounds and the stopped waiting closure. Regression cases independently check
+the final solutions against the time-expanded oracle.
+
+To compare all three planners on the same moving decisions, use the following
+command with a new output filename. The paired mode rotates execution order
+over one warm-up and three timed trials, checks every answer and solved path,
+and retains the per-query median native times. The suffix-only control uses
+the default adaptive executable and thresholds. The transfer variant adds
+the final native argument `--projection-reuse`. The moving replay accepts
+`--projection-reuse` for an individual run or `--paired` for a comparison. In the replay output, `projections` counts ordinary
+projection calculations and `projection_hits` counts successful transfers.
+A reset still denotes construction of a new reachability search.
+
+```sh
+python3 -m sipp_baseline.moving_replay runs/diverse-scenarios --seed 19 \
+  --minimum 0 --percent 5 --paired --output runs/moving-projection-replay.jsonl
+```
+
+### Seed-19 paired results
+
+All 248 decision queries matched full replanning in feasibility and arrival
+cost. The executed states, remaining costs and outcomes matched the archived
+suffix pilot case by case. Of 146 updates, 16 used the suffix certificate and
+130 rebuilt reachability. In 127 of those 130 searches, at least one projection
+came from the preceding generation. There were 9,440,897 projection hits and
+8,538,163 fresh projection calculations. Hits included 4,074,014 restricted
+source domains and 225,524 empty results. Those two counters can overlap.
+
+| Planner | Median update (ms) | p95 update (ms) | Sum of update medians (s) |
+| --- | ---: | ---: | ---: |
+| Full SIPP-IP | 14.85 | 303.71 | 9.47 |
+| Adaptive with suffix certificate | 22.91 | 547.57 | 15.60 |
+| Adaptive with suffix and projection transfer | 25.09 | 473.39 | 15.51 |
+
+Transfer won 60 of 146 individual update comparisons with the suffix-only
+control. It avoided 52.5% of projection calculations while still performing
+the expansion, witness installation and queue work. The small difference in
+total time has no established statistical significance. The default remains
+suffix-only. Projection transfer is available for experiments.
+
+On Sydney seed 19, density .04, all-eligible-near, a separate two-query replay
+measured maximum process RSS with GNU time. Full replanning used 140.5 MiB,
+suffix-only 348.9 MiB and transfer 532.5 MiB. These figures cover one large
+case. The transfer run held both generations during the second search.
+
+[Seed-19 paired event results](moving-projections-19.jsonl.gz).
+
+The separate seed-23 and seed-29 moving replays checked 455 further queries in 180 episodes. Every answer matched full replanning and every returned path validated. All 180 episodes reached the goal. These additional passes check correctness. [Seed 23](moving-projections-23.jsonl.gz) and [seed 29](moving-projections-29.jsonl.gz).

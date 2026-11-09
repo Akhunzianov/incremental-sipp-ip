@@ -48,6 +48,50 @@ struct Incremental {
     double recheck_us=0,retirement_us=0,coverage_us=0,installation_us=0;
     long long live_labels=0,live_owners=0,live_records=0,covered_states=0;
 
+#ifdef SIPP_ADAPTIVE
+    // Borrow one immutable generation only while searching from the new root.
+    const Incremental* previous=nullptr;
+    std::vector<bool> changed_since_previous;
+    long long projection_hits=0,empty_hits=0,clipped_hits=0;
+
+    void borrow_projections(const Incremental& source) {
+        previous=&source;
+        changed_since_previous.resize(env.blocked.size());
+        for(size_t cell=0;cell<env.blocked.size();++cell)
+            changed_since_previous[cell]=source.env.blocked[cell]!=env.blocked[cell];
+    }
+
+    bool cached_projection(int owner,int action,std::vector<Output>& result) {
+        const auto& target=expansions[owner];
+        const auto& n=labels[target.label].n;
+        const auto& motion=primitives[n.o][n.v][action];
+        for(const auto& touch:motion.touches)
+            if(changed_since_previous[cell(n.r+touch.dr,n.c+touch.dc)]) return false;
+        for(int id:previous->owners[key(n)]) {
+            const auto& source=previous->expansions[id];
+            if(!source.live || source.lo>target.lo || source.hi<target.hi) continue;
+            int rid=source.records[action];
+            if(rid<0 || !previous->records[rid].live) continue;
+            for(int output:previous->records[rid].outputs) {
+                const auto& old=previous->labels[output].n;
+                int lo=std::max(target.lo,old.dep_lo),hi=std::min(target.hi,old.dep_hi);
+                if(lo>hi) continue;
+                // All arrivals in this component share a destination safe interval.
+                int end=motion.velocity==0?old.hi:hi+motion.duration;
+                result.push_back({lo+motion.duration,end,lo,hi});
+            }
+            ++projection_hits;
+            empty_hits+=result.empty();
+            clipped_hits+=source.lo!=target.lo || source.hi!=target.hi;
+#ifdef SIPP_REPAIR_VERIFY
+            if(result!=project_result(owner,action)) throw std::logic_error("invalid transferred projection");
+#endif
+            return true;
+        }
+        return false;
+    }
+#endif
+
     static int storage_id(size_t size){
         if(size>=static_cast<size_t>(std::numeric_limits<int>::max()))throw std::length_error("repair storage index limit exceeded");
         return static_cast<int>(size);
@@ -143,6 +187,12 @@ struct Incremental {
         return result;
     }
     std::vector<Output> project(int owner,int action){
+#ifdef SIPP_ADAPTIVE
+        if(previous) {
+            std::vector<Output> result;
+            if(cached_projection(owner,action,result)) return result;
+        }
+#endif
         ++stats.search.projections;
         return project_result(owner,action);
     }
@@ -534,6 +584,8 @@ int main(int argc,char** argv){
         auto result=std::from_chars(text.data(),end,value);
         return result.ec==std::errc{} && result.ptr==end && value>=0;
     };
+    bool transfer=argc==4 && std::string_view(argv[3])=="--projection-reuse";
+    if(transfer) --argc;
     if(argc!=1 && (argc!=3 || !parse(argv[1],minimum) || !parse(argv[2],percent) || percent>100)) return 2;
 #else
 int main(){
@@ -559,16 +611,28 @@ int main(){
             std::cout<<"]}\n"<<std::flush;
             continue;
         }
+        if(planner) planner->projection_hits=planner->empty_hits=planner->clipped_hits=0;
         bool fallback=planner && planner->same_query(input) && broad_change(planner->env,input,minimum,percent);
         double decision_us=micros(parsed,Clock::now());
         if(fallback) {
             solve_fallback(std::move(input),begin,decision_us);
             continue;
         }
+        std::unique_ptr<Incremental> previous;
+        if(transfer && planner && input.start>planner->env.start &&
+           input.horizon==planner->env.horizon && input.grid==planner->env.grid) {
+            previous=std::move(planner);
+        }
 #endif
         bool reuse=false;
-        if(!planner||!planner->same_query(input))planner=std::make_unique<Incremental>(std::move(input));
-        else reuse=planner->update(std::move(input));
+        if(!planner || !planner->same_query(input)) {
+            planner=std::make_unique<Incremental>(std::move(input));
+#ifdef SIPP_ADAPTIVE
+            if(previous) planner->borrow_projections(*previous);
+#endif
+        } else {
+            reuse=planner->update(std::move(input));
+        }
         auto repaired=Clock::now();
 #ifdef SIPP_REPAIR_VERIFY
         planner->verify_invariants();
@@ -577,12 +641,16 @@ int main(){
 #ifdef SIPP_REPAIR_VERIFY
         planner->verify_invariants();
 #endif
+#ifdef SIPP_ADAPTIVE
+        planner->previous=nullptr;
+        previous.reset(); // Charge destruction of the borrowed generation to this query.
+#endif
         auto searched=Clock::now();
         auto steps=answer.second<0?std::vector<Step>{}:planner->reconstruct(answer.second);
         auto finished=Clock::now();const auto& p=*planner;const auto& s=p.stats;
         std::cout<<"{";
 #ifdef SIPP_ADAPTIVE
-        std::cout<<"\"strategy\":\"repair\",\"decision_us\":"<<decision_us<<",";
+        std::cout<<"\"projection_hits\":"<<p.projection_hits<<",\"clipped_hits\":"<<p.clipped_hits<<",\"empty_hits\":"<<p.empty_hits<<",\"strategy\":\"repair\",\"decision_us\":"<<decision_us<<",";
 #endif
         std::cout<<"\"algorithm\":\"incremental-sipp-ip\",\"status\":\""<<answer.first<<"\",\"cost_ticks\":";
         if(answer.second<0)std::cout<<"null";else std::cout<<p.labels[answer.second].n.lo;

@@ -4,6 +4,7 @@ from collections import Counter
 import json
 from pathlib import Path
 import subprocess
+import statistics
 
 from .events import planning_events
 from .model import load, protocol
@@ -23,7 +24,7 @@ def committed_segment_free(data, forecast, step, first, last):
     return True
 
 
-def replay(data, minimum, percent):
+def replay(data, minimum, percent, paired=False, projection_reuse=False):
     forecasts,_ = planning_events(data)
     state, tick = data['start'],data.get('start_tick',0)
     queries = []
@@ -63,19 +64,37 @@ def replay(data, minimum, percent):
             break
     payload = ''.join(protocol(q,f,1_000_000) for q,f,r in queries)
     binary = ROOT/'build/sipp_ip_adaptive'
-    proc = subprocess.run([binary,str(minimum),str(percent)],input=payload,text=True,
-                          capture_output=True,check=True,timeout=180)
-    rows = [json.loads(line) for line in proc.stdout.splitlines()]
-    if len(rows)!=len(queries):raise RuntimeError('missing adaptive result')
+    commands={'adaptive':[binary,str(minimum),str(percent)]}
+    if projection_reuse or paired:
+        commands['adaptive'].append('--projection-reuse')
+    if paired:
+        commands['suffix_only']=[binary,str(minimum),str(percent)]
+        commands['full']=[ROOT/'build/sipp_ip']
+    times={name:[[] for _ in queries] for name in commands}
+    for trial in range(4 if paired else 1):
+        names=list(commands)
+        offset=trial%len(names)
+        for name in names[offset:]+names[:offset]:
+            proc=subprocess.run(commands[name],input=payload,text=True,capture_output=True,check=True,timeout=180)
+            results=[json.loads(line) for line in proc.stdout.splitlines()]
+            if len(results)!=len(queries):raise RuntimeError('missing replay result')
+            for index,((q,f,ref),result) in enumerate(zip(queries,results)):
+                validate(q,f,result)
+                if result['status']=='expansion_limit' or (result['status'],result['cost_ticks'])!=(ref['status'],ref['cost_ticks']):
+                    raise RuntimeError('moving-start comparison inconclusive or mismatched')
+                if trial or not paired:
+                    times[name][index].append(result['total_us'])
+            if name=='adaptive':rows=results
     decisions = []
-    for (q,f,ref),row in zip(queries,rows):
-        validate(q,f,row)
-        if row['status']=='expansion_limit' or (row['status'],row['cost_ticks'])!=(ref['status'],ref['cost_ticks']):
-            raise RuntimeError('moving-start comparison inconclusive or mismatched')
+    for index,((q,f,ref),row) in enumerate(zip(queries,rows)):
         decisions.append(dict(start=q['start'], tick=q['start_tick'], forecast=f['id'],
                               remaining=None if row['cost_ticks'] is None else row['cost_ticks']-q['start_tick'],
                               reset=row.get('reset'),strategy=row['strategy'], expansions=row['expansions'],
-                              adaptive_us=row['total_us'],full_us=ref['total_us']))
+                              projection_hits=row.get('projection_hits',0), clipped_hits=row.get('clipped_hits',0),
+                              empty_hits=row.get('empty_hits',0), projections=row['projections'],
+                              adaptive_us=statistics.median(times['adaptive'][index]),
+                              suffix_only_us=statistics.median(times['suffix_only'][index]) if paired else None,
+                              full_us=statistics.median(times['full'][index]) if paired else ref['total_us']))
     return dict(outcome=outcome,queries=decisions)
 
 
@@ -86,13 +105,15 @@ def main():
     p.add_argument('--minimum',type=int,required=True)
     p.add_argument('--percent',type=int,required=True)
     p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--projection-reuse',action='store_true',help='enable moving-root projection transfer')
+    p.add_argument('--paired',action='store_true',help='compare projection reuse, suffix only and full replanning over three timed trials')
     args=p.parse_args()
     subprocess.run(['make','build-adaptive'],cwd=ROOT,check=True)
     counts=Counter()
     with args.output.open('x') as stream:
         for case in json.loads((args.suite/'suite.json').read_text())['cases']:
             if case['seed']!=args.seed:continue
-            result=replay(load(args.suite/case['directory']/'scenario.json'),args.minimum,args.percent)
+            result=replay(load(args.suite/case['directory']/'scenario.json'),args.minimum,args.percent,args.paired,args.projection_reuse)
             counts[result['outcome']]+=1
             stream.write(json.dumps(dict(case=case['directory'],**result))+'\n')
     print(dict(counts))
