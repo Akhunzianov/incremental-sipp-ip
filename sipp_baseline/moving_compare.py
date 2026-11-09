@@ -11,9 +11,11 @@ from .runner import ROOT, ensure_built
 from .validation import validate
 
 
-def compare(seed, output, profile=False, on_demand=False):
+def compare(seed, output, profile=False, on_demand=False, compact=False):
     archive = ROOT / 'docs' / f'moving-projections-{seed}.jsonl.gz'
     suite = ROOT / 'runs' / ('diverse-scenarios' if seed == 19 else 'threshold-fresh')
+    if compact:
+        on_demand = True
     if on_demand and seed != 19:
         suite = ROOT / 'runs/on-demand-holdout'
         archive = ROOT / 'docs' / f'on-demand-decisions-{seed}.jsonl.gz'
@@ -23,6 +25,8 @@ def compare(seed, output, profile=False, on_demand=False):
     if on_demand:
         candidate = 'on_demand_audit' if audit else 'on_demand'
         commands = {candidate: [ROOT/'build'/candidate,'0','5','--suffix-fresh']}
+        if compact:
+            commands['on_demand_compact'] = [ROOT/'build/on_demand_compact','0','5','--suffix-fresh']
         if not audit:
             commands['suffix_fresh'] = [binary,'0','5','--suffix-fresh']
     elif profile:
@@ -39,6 +43,8 @@ def compare(seed, output, profile=False, on_demand=False):
             payload = ''.join(protocol(q,f,1_000_000) for q,f in queries).encode()
             record = dict(case=episode['case'], outcome=episode['outcome'], methods={})
             for trial in range(1 if profile or audit else 4):
+                reference_paths = None
+                reference_hits = None
                 names = list(commands)
                 offset = (trial + len(record['case'])) % len(names)
                 for name in names[offset:] + names[:offset]:
@@ -55,6 +61,16 @@ def compare(seed, output, profile=False, on_demand=False):
                         status = 'solved' if expected is not None else episode['outcome']
                         if (row['status'],row['cost_ticks']) != (status,expected):
                             raise RuntimeError(f'{episode["case"]}: decision mismatch')
+                    if compact:
+                        paths = [(r['steps'],r['expansions']) for r in rows]
+                        if reference_paths is not None and paths != reference_paths:
+                            raise RuntimeError(f'{episode["case"]}: path or expansion count changed')
+                        reference_paths = paths
+                        if name.startswith('on_demand'):
+                            hits = [(r.get('batch_hits',0),r.get('clipped_hits',0),r.get('probes',0)) for r in rows]
+                            if reference_hits is not None and hits != reference_hits:
+                                raise RuntimeError(f'{episode["case"]}: cache decisions changed')
+                            reference_hits = hits
                     if profile or audit or trial:
                         samples = record['methods'].setdefault(name,dict(times=[],rss=[],strategies=[]))
                         if on_demand: samples.setdefault('wall_us',[]).append(wall_us)
@@ -75,14 +91,18 @@ if __name__=='__main__':
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--profile',action='store_true')
     modes.add_argument('--on-demand',action='store_true')
+    modes.add_argument('--compact',action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     subprocess.run(['make','build/sipp_profile' if args.profile else 'build-adaptive'],cwd=ROOT,check=True)
     if args.profile:subprocess.run(['make','build/full_profile'],cwd=ROOT,check=True)
-    if args.on_demand:
+    if args.compact:
+        if args.seed not in (31,37): parser.error('compact comparison seeds are 31 and 37')
+        subprocess.run(['make','build/on_demand','build/on_demand_compact'],cwd=ROOT,check=True)
+    elif args.on_demand:
         if args.seed not in (19,31,37): parser.error('on-demand seeds are 19, 31 and 37')
         target = 'on_demand_audit' if args.seed == 19 else 'on_demand'
         subprocess.run(['make','build/'+target],cwd=ROOT,check=True)
     elif args.seed not in (19,23,29):
         parser.error('original comparison seeds are 19, 23 and 29')
-    compare(args.seed,args.output,args.profile,args.on_demand)
+    compare(args.seed,args.output,args.profile,args.on_demand,args.compact)

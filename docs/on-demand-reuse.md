@@ -55,3 +55,36 @@ make test
 ```
 
 The report command reads the archived JSONL files under `docs`. The experimental planner is available through `sipp_baseline.moving_replay --on-demand`. [Pilot measurements](on-demand-19.jsonl.gz), [seed 31 trials](on-demand-31.jsonl.gz), [seed 37 trials](on-demand-37.jsonl.gz), [seed 31 decisions](on-demand-decisions-31.jsonl.gz), [seed 37 decisions](on-demand-decisions-37.jsonl.gz).
+
+## Compact child storage
+
+The compact variant saves four integers per outgoing child, covering the action index, the lower and upper departure ticks, and the endpoint used for stopped waiting. The search keeps full nodes until it reconstructs the current path. It then releases the previous generation, packs only the children covered by expansion records, and remaps each record to its packed range. Empty ranges and child order are preserved. At replay, the reached source and its motion primitive determine the destination cell, orientation, velocity and duration. The new path supplies the parent. Both variants apply the same departure clipping and waiting rules.
+
+With this build, a packed child occupies 16 bytes and a full node occupies 40 bytes. Total process memory also includes the in-progress search, expansion index, reservations and the temporary overlap during packing. The three-way comparison measures that high-water mark using the same episode protocol as above. Seeds 31 and 37 are reused for a paired storage experiment. All three methods run anew in rotating order, with one warm-up and three measured trials. Every trial checks path steps and expansion counts across all three methods, and probe, hit and clipped-hit counts across the two caches.
+
+| Seed | Policy | Summed episode time (s) | Summed process wall time (s) | p95 update (ms) | Peak RSS (MiB) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 31 | Suffix + fresh | 14.41 | 14.66 | 350.6 | 149.6 |
+| 31 | Full-node cache | 14.09 | 14.38 | 342.0 | 212.4 |
+| 31 | Compact cache | 14.05 | 14.32 | 343.8 | 185.6 |
+| 37 | Suffix + fresh | 15.46 | 15.73 | 317.3 | 106.1 |
+| 37 | Full-node cache | 14.77 | 15.07 | 291.5 | 149.6 |
+| 37 | Compact cache | 14.86 | 15.15 | 288.2 | 139.0 |
+| Both | Suffix + fresh | 29.87 | 30.40 | 335.5 | 149.6 |
+| Both | Full-node cache | 28.87 | 29.45 | 333.8 | 212.4 |
+| Both | Compact cache | 28.91 | 29.48 | 338.5 | 185.6 |
+
+Across 180 episodes and 452 decisions, all returned paths were feasible and all statuses and arrival times matched the archived reference. Both caches made the same 6,440,452 hits on 14,501,864 probes. The compact cache reduced peak process memory by 26.9 MiB (12.6%) relative to the full-node cache. Its summed episode time increased by 0.04 s (0.14%). The direction of that small timing difference changed between seeds and the trial totals overlapped.
+
+Relative to suffix-plus-fresh, compact reuse reduced summed episode time by 3.2%, used 24.0% more peak memory and had a slightly higher pooled p95. For these maps and update patterns, compact storage is the preferred representation when enabling on-demand reuse. Suffix-plus-fresh remains the lower-memory option. This repeat on the same seeds isolates the representation change and gives no additional evidence about generalization to new worlds.
+
+To use the compact variant, run the moving replay with `--compact`. To repeat the comparison with the existing scenario directory and decision archives:
+
+```sh
+for seed in 31 37; do
+  python3 -m sipp_baseline.moving_compare --compact --seed "$seed" --output "runs/compact-replication-$seed.jsonl"
+done
+python3 -m sipp_baseline.on_demand_report --compact
+```
+
+The summary command reads the archived [seed 31 trials](compact-cache-31.jsonl.gz) and [seed 37 trials](compact-cache-37.jsonl.gz).

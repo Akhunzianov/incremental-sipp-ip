@@ -41,7 +41,14 @@ struct Planner {
     }
     void replay(const ExpansionCache::Record& record,const Node& source,int parent) {
         for(int i=record.first;i<record.last;++i) {
+#ifdef SIPP_COMPACT_CACHE
+            const auto& saved=previous->children[i];
+            const auto& motion=primitives[source.o][source.v][saved.action];
+            Node child{source.r+motion.dr,source.c+motion.dc,motion.orientation,motion.velocity,
+                       0,saved.wait_end,parent,saved.action,saved.dep_lo,saved.dep_hi};
+#else
             Node child=previous->children[i];
+#endif
             child.dep_lo=std::max(child.dep_lo,source.lo);
             child.dep_hi=std::min(child.dep_hi,source.hi);
             if(child.dep_lo>child.dep_hi) continue;
@@ -179,8 +186,8 @@ inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin,
     if(saved) { saved->cost=cost; saved->steps=steps; }
 #ifdef SIPP_ON_DEMAND
     if(p.destination) {
-        p.cache.children=std::move(p.nodes);
         *p.destination=std::move(p.cache);
+        p.destination->retain_children(p.nodes);
     }
     auto hits=p.hits,clipped=p.clipped,probes=p.probes;
     double lookup_us=p.lookup_us,credit_us=p.credit_us;

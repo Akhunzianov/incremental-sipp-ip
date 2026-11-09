@@ -385,3 +385,5 @@ fresh planner expands those intervals, and the cost of identifying them.
 The [on-demand reuse experiment](docs/on-demand-reuse.md) checks old outgoing
 motions when fresh search reaches an interval and compares whole episodes on
 two new seeds. Use `sipp_baseline.moving_replay --on-demand` to replay this policy.
+Use `--compact` for the variant that packs outgoing child records. Its paired
+time and memory measurements are in the [compact storage results](docs/on-demand-reuse.md#compact-child-storage).

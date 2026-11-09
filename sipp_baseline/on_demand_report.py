@@ -1,4 +1,5 @@
 """Summarize paired moving-start trials stored by moving_compare."""
+import argparse
 from collections import Counter
 import gzip
 import json
@@ -8,8 +9,8 @@ from statistics import median
 from .runner import ROOT
 
 
-def records(seed):
-    with gzip.open(ROOT/'docs'/f'on-demand-{seed}.jsonl.gz','rt') as f:
+def records(seed, prefix="on-demand"):
+    with gzip.open(ROOT/'docs'/f'{prefix}-{seed}.jsonl.gz','rt') as f:
         return list(map(json.loads,f))
 
 
@@ -63,4 +64,13 @@ def summary():
 
 
 if __name__ == '__main__':
-    print(json.dumps(summary(),indent=2))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--compact',action='store_true',help='summarize the three-policy storage comparison')
+    if parser.parse_args().compact:
+        cohorts = {str(seed):records(seed,'compact-cache') for seed in (31,37)}
+        cohorts['both'] = cohorts['31'] + cohorts['37']
+        methods = ('suffix_fresh','on_demand','on_demand_compact')
+        result = {seed:{m:metrics(episodes,m) for m in methods} for seed,episodes in cohorts.items()}
+    else:
+        result = summary()
+    print(json.dumps(result,indent=2))

@@ -28,6 +28,6 @@ build/witness_audit: src/witness_audit.cpp src/incremental.cpp src/fresh.hpp src
 	mkdir -p build
 	g++ -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Wpedantic src/witness_audit.cpp -o $@
 
-build/on_demand build/on_demand_audit: src/incremental.cpp src/fresh.hpp src/expansion_cache.hpp src/model.hpp src/profile.hpp
+build/on_demand build/on_demand_audit build/on_demand_compact: src/incremental.cpp src/fresh.hpp src/expansion_cache.hpp src/model.hpp src/profile.hpp
 	mkdir -p build
-	g++ -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Wpedantic -DSIPP_ADAPTIVE -DSIPP_ON_DEMAND $(if $(findstring _audit,$@),-DSIPP_LOOKUP_AUDIT) src/incremental.cpp -o $@
+	g++ -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Wpedantic -DSIPP_ADAPTIVE -DSIPP_ON_DEMAND $(if $(findstring _audit,$@),-DSIPP_LOOKUP_AUDIT) $(if $(findstring _compact,$@),-DSIPP_COMPACT_CACHE) src/incremental.cpp -o $@

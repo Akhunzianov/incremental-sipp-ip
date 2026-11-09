@@ -9,7 +9,7 @@ from sipp_baseline.validation import oracle, validate
 
 class OnDemandTests(unittest.TestCase):
     def test_rebase_witnesses_and_reject_changed_empty_actions(self):
-        subprocess.run(['make','build/on_demand','build-adaptive'],cwd=ROOT,
+        subprocess.run(['make','build/on_demand','build/on_demand_compact','build-adaptive'],cwd=ROOT,
                        capture_output=True,check=True)
         q = dict(grid=['.'*13],start=[0,0,0,0],goal=[0,12,0],horizon=170)
         barrier = [[0,9,0,170],[0,4,55,65]]
@@ -27,6 +27,11 @@ class OnDemandTests(unittest.TestCase):
                                   text=True,capture_output=True,check=True)
             return [json.loads(line) for line in proc.stdout.splitlines()]
         candidate, baseline = run('on_demand'), run('sipp_ip_adaptive')
+        compact = run('on_demand_compact')
+        self.assertEqual(len(compact),len(candidate))
+        for row, ref in zip(compact,candidate):
+            for field in ('steps','status','cost_ticks','expansions','batch_hits','clipped_hits','probes'):
+                self.assertEqual(row.get(field),ref.get(field),field)
         self.assertEqual(len(candidate),len(queries))
         self.assertGreater(candidate[1]['clipped_hits'],0)
         self.assertEqual(candidate[1]['status'],'no_path')
@@ -38,7 +43,7 @@ class OnDemandTests(unittest.TestCase):
             validate(query,f,result)
 
     def test_turn_and_brake_waiting_intervals(self):
-        subprocess.run(['make','build/on_demand'],cwd=ROOT,capture_output=True,check=True)
+        subprocess.run(['make','build/on_demand_compact'],cwd=ROOT,capture_output=True,check=True)
         data = dict(grid=['.'*9]*9,start=[0,0,0,0],goal=[8,8,0],horizon=240)
         # Reach the corner moving east, brake, turn south and brake again.
         # A change at the brake destination can shorten a waiting interval.
@@ -48,7 +53,7 @@ class OnDemandTests(unittest.TestCase):
                    (dict(data,start_tick=42,start=[0,4,0,1]),dict(reservations=[[0,8,90,110]])),
                    (dict(data,start_tick=43,start=[0,4,0,1]),dict(reservations=initial))]
         payload = ''.join(protocol(q,f,100000) for q,f in queries)
-        proc = subprocess.run([ROOT/'build/on_demand','0','5','--suffix-fresh'],input=payload,
+        proc = subprocess.run([ROOT/'build/on_demand_compact','0','5','--suffix-fresh'],input=payload,
                               text=True,capture_output=True,check=True)
         rows = list(map(json.loads,proc.stdout.splitlines()))
         self.assertEqual(len(rows),len(queries))
