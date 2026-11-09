@@ -1,9 +1,10 @@
 # Incremental SIPP-IP research: full replanning and interval repair
 
-Working fixed-start baseline: each forecast snapshot constructs a **fresh SIPP-IP
-search**, returns a concrete timed trajectory, validates it, and records timings
-and search counters. A second planner now retains interval witnesses and repairs
-their dependencies across snapshots. Both planners use the same saved forecasts.
+Both fixed-start planners run initially, then **only when the effective prediction
+changes**. The baseline constructs a fresh SIPP-IP search at each such event;
+the incremental planner repairs saved interval witnesses and their dependencies.
+Identical snapshots invoke neither planner. Both use the same saved forecasts
+and the same event trigger, and return validated concrete timed trajectories.
 
 The production planner is a C++17 adaptation of interval projection with the
 authors' exact primitive tables. It is **not an unchanged upstream executable**;
@@ -47,6 +48,12 @@ python3 -m sipp_baseline compare-repair-suite runs/q-comparison \
 
 The suite command replays the existing five-map q suite without regenerating or
 copying its scenarios. Open the output `index.html` for the comparison table.
+Its `events.json` ledger records every received prediction and whether it invoked
+planning. The trigger compares normalized collision reservations, so formatting,
+metadata and rejected proposals do not count as changes. At q=0 there is only an
+initial plan: no replanning samples and no update-speedup ratio. Generation still
+offers prediction revisions at its configured cadence; this does not schedule
+planner calls. Arbitrary prediction arrival times are supported.
 Each case contains raw `baseline.jsonl` and `incremental.jsonl`, `comparison.csv`,
 `summary.json`, and a manifest with input, source and executable hashes. Every
 returned trajectory is validated; status/cost disagreements stop the run and
@@ -57,10 +64,10 @@ The incremental executable accepts the same line protocol as the baseline and
 retains state between queries in one process. Changing the fixed query resets
 its cache. The Python API is `sipp_baseline.repair.solve_incremental(scenario)`.
 
-See [the implementation and measured results](docs/repair-results.md): all 150
-five-map queries matched, but most changing-forecast cases were slower than
-full replanning. This prototype establishes tested repair behavior; further work
-is needed to make dependency maintenance pay off on those cases.
+See [the current event-based evaluation](docs/event-evaluation.md).
+The [older per-snapshot measurements](docs/repair-results.md) are retained as
+historical results; their q=0 speedups compare cached reuse against unnecessary
+baseline restarts and are not evidence of faster repair.
 
 [The correctness proof](docs/repair-correctness.md) establishes soundness,
 termination, completeness and earliest-arrival optimality in the fixed-start,
@@ -207,10 +214,11 @@ python3 -m sipp_baseline compare-q --output runs/q-comparison-new
 ```
 
 Defaults: five paper maps, q = 0 / 0.1 / 0.25 / 0.5 / 1, density p = 0.04,
-seed 7, five updates every 100 ticks, full 40,000-tick horizon, three measured
+seed 7, five prediction-revision opportunities every 100 ticks, full 40,000-tick horizon, three measured
 repetitions and one warmup. Each map's initial forecast is generated once and
 shared across q, with matching initial hashes verified. These are 25 sequences
-and 150 forecast queries, not independent random repetitions of the environment.
+and 150 received predictions, not 150 required planner calls or independent
+random repetitions of the environment. Only effective changes trigger replanning.
 
 Open the resulting `index.html`. Choose a map, two q values and a forecast
 revision; shared time, playback and zoom controls synchronize both replays.
@@ -254,7 +262,8 @@ transfer, planner destruction, and result parsing; it is repeated on each row
 for context and **must not be summed across rows**.
 
 Validation and oracle work are outside planner timings. Warmups execute complete
-forecast sequences and are discarded. Every repetition is still a full replan.
+event sequences and are discarded. Each baseline query triggered by a prediction
+change is still a full replan; unchanged observations do not invoke the planner.
 Very short microsecond timings are noisy; compare repeated runs on the same
 machine. p95 uses the nearest-rank definition and is weak evidence with few samples.
 

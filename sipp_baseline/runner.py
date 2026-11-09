@@ -6,6 +6,7 @@ import subprocess
 import time
 
 from .model import protocol
+from .events import POLICY, planning_events, reused_result
 from .validation import oracle, validate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +52,8 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
     if output.exists():
         raise ValueError(f"output directory already exists: {output}; choose a new path")
     output.mkdir(parents=True)
+    selected,decisions = planning_events(data)
+    decision_by_id = {d['forecast_id']:d for d in decisions}
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
     (output / "scenario.json").write_text(json.dumps(data, indent=2) + "\n")
     try:
@@ -74,6 +77,9 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
                 "repeats": repeats, "warmups": warmups, "oracle": check_oracle,
                 "max_expansions": max_expansions, "timeout_seconds_per_batch": timeout,
                 "complete": False}
+    manifest.update({'evaluation_policy':POLICY,'received_forecasts':len(decisions),
+                     'planner_queries':len(selected),'skipped_forecasts':len(decisions)-len(selected)})
+    (output/'events.json').write_text(json.dumps(decisions,indent=2)+'\n')
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     reference = {}
     if check_oracle:
@@ -82,7 +88,15 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
     with (output / "results.jsonl").open("w") as stream:
         for repetition in range(-warmups, repeats):
             wall_start = time.perf_counter_ns()
-            results = solve_batch(data, max_expansions=max_expansions, binary=binary, timeout=timeout)
+            invoked_results = solve_batch(data, forecasts=selected, max_expansions=max_expansions, binary=binary, timeout=timeout)
+            measured = {f['id']:r for f,r in zip(selected,invoked_results)}
+            results = []
+            for forecast in data['forecasts']:
+                decision = decision_by_id[forecast['id']]
+                result = measured[decision['source_forecast_id']]
+                result = dict(result) if decision['planner_invoked'] else reused_result(result)
+                result.update({key:decision[key] for key in ('planner_invoked','reason','source_forecast_id')})
+                results.append(result)
             batch_wall_us = (time.perf_counter_ns()-wall_start)/1000
             for forecast, result in zip(data["forecasts"], results):
                 validation_start = time.perf_counter_ns()
@@ -107,7 +121,10 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
                 stream.flush()
     summary = summarize(output / "results.jsonl", output / "summary.csv")
     aggregate = ({"instances": aggregate_queries(summary)} if data.get("metadata", {}).get("independent_instances")
-                 else {"initial": aggregate_queries(summary[:1]), "updates": aggregate_queries(summary[1:])})
+                 else {"initial": aggregate_queries(summary[:1]),
+                       "updates": aggregate_queries([r for r in summary[1:] if r['planner_invoked']]),
+                       "received_forecasts":len(decisions),"skipped_forecasts":len(decisions)-len(selected),
+                       "evaluation_policy":POLICY})
     (output / "aggregate.json").write_text(json.dumps(aggregate, indent=2) + "\n")
     manifest["complete"] = True
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
@@ -135,7 +152,9 @@ def summarize(path, output=None):
     summary = []
     for forecast_id, rows in groups.items():
         times = sorted(r["total_us"] for r in rows)
-        summary.append({"forecast_id": forecast_id, "samples": len(rows),
+        invoked = rows[0].get('planner_invoked',True)
+        summary.append({"forecast_id": forecast_id, "samples": len(rows) if invoked else 0,
+                        "planner_invoked":invoked,"source_forecast_id":rows[0].get('source_forecast_id',forecast_id),
                         "status": rows[0]["status"], "cost_ticks": rows[0]["cost_ticks"],
                         "median_total_us": statistics.median(times),
                         "p95_total_us": times[math.ceil(.95*len(times))-1],

@@ -1,5 +1,10 @@
 # First incremental repair implementation and results
 
+**Historical per-snapshot evaluation.** The current
+[event-based evaluation](event-evaluation.md) invokes both planners only on
+prediction changes. In particular, the q=0 speedups below are cached-answer
+reuse versus repeated baseline searches, not improvements from repairing a change.
+
 The fixed-start repair prototype is implemented in `src/incremental.cpp`.
 All 150 queries in the existing five-map q suite matched full replanning in
 status and optimal arrival cost, and every returned path passed the separate

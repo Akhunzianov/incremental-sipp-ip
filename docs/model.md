@@ -7,6 +7,13 @@ and finite horizon stay fixed throughout a forecast sequence. A forecast is a
 complete replacement reservation table. Query order does not advance the robot
 or shift the time origin. Forecast identifiers are unique strings.
 
+Evaluation issues an initial planning query and then queries only when the
+effective blocked-cell/time unions change. Identical prediction arrivals are
+skipped for both planners; revision times alone never trigger replanning. Original
+snapshots and event decisions are retained for replay. The low-level solver
+protocol still accepts explicit repeated queries for unit tests of cache reuse
+and interrupted-search resumption. Independent paper instances always run.
+
 Rows increase downward; columns increase rightward. Orientations are 0=east,
 1=north, 2=west, 3=south. Velocity indices are 0=stopped and 1=2 cells/second.
 Only stopped configurations may wait or rotate. Goal orientation is unrestricted;

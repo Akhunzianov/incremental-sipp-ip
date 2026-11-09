@@ -8,6 +8,7 @@ from pathlib import Path
 import statistics
 
 from .generate import generate
+from .events import POLICY
 from .model import read_map
 from .paper import MAPS
 from .runner import ROOT, benchmark, summarize
@@ -50,7 +51,8 @@ def collect_run(scenario, directory, relative):
     return {'map':scenario['metadata']['map_name'],'q':scenario['metadata']['change_probability'],
             'density':scenario['metadata']['obstacle_density'],'obstacles':scenario['metadata']['obstacles'],
             'initial_sha256':initial_hash(scenario),'forecasts':forecasts,
-            'median_update_ms':statistics.median(row['median_total_us']/1000 for row in forecasts[1:]) if len(forecasts)>1 else None}
+            'median_update_ms':statistics.median(row['median_total_us']/1000 for row in forecasts[1:] if row['planner_invoked'])
+                if any(row['planner_invoked'] for row in forecasts[1:]) else None}
 
 
 def write_suite(output, config, runs, complete):
@@ -62,6 +64,7 @@ def write_suite(output, config, runs, complete):
             records.append({'map':run['map'],'seed':config['seed'],'q':run['q'],'density_p':run['density'],
                             'obstacles':run['obstacles'],'forecast':i,'revision_tick':f['revision_tick'],
                             'status':f['status'],'cost_ticks':f['cost_ticks'],
+                            'planner_invoked':f['planner_invoked'],
                             'median_total_ms':f['median_total_us']/1000,'expansions':f['expansions'],
                             'proposed':f['proposed'],'applied':f['applied'],
                             'changed_obstacles':f['changed_obstacles'],'changed_cells':f['changed_cells']})
@@ -85,7 +88,7 @@ def build_suite(output, maps=MAPS, q_values=DEFAULT_Q, seed=7, density=.04,
     config = {'maps':list(maps),'q_values':list(q_values),'seed':seed,'density':density,
               'updates':updates,'update_interval':update_interval,'horizon':horizon,
               'repeats':repeats,'warmups':warmups,'max_expansions':max_expansions,'timeout':timeout,
-              'generation_timeout':generation_timeout,'generator':'sipp-ip-upstream-v2'}
+              'generation_timeout':generation_timeout,'generator':'sipp-ip-upstream-v2','evaluation_policy':POLICY}
     if output.exists():
         if not resume:
             raise ValueError(f'output already exists: {output}; use --resume for matching completed runs')
@@ -116,6 +119,8 @@ def build_suite(output, maps=MAPS, q_values=DEFAULT_Q, seed=7, density=.04,
                 manifest = json.loads((directory/'manifest.json').read_text())
                 if not resume or not manifest.get('complete'):
                     raise ValueError(f'incomplete run cannot be reused: {directory}')
+                if manifest.get('evaluation_policy')!=POLICY:
+                    raise ValueError(f'cached run uses a different evaluation policy: {directory}')
                 scenario = json.loads((directory/'scenario.json').read_text())
                 if (initial_hash(scenario)!=digest or scenario['metadata']['change_probability']!=q
                         or manifest['repeats']!=repeats or manifest['warmups']!=warmups

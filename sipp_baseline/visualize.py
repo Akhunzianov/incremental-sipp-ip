@@ -53,7 +53,7 @@ def viewer_data(directory, repetition=0):
                           "cells": merge_reservations(forecast["reservations"]),
                           "result": result, "validation": validation,
                           "median_total_us": statistics.median(r["total_us"] for r in rows),
-                          "samples": len(rows)})
+                          "samples": len(rows) if result.get('planner_invoked',True) else 0})
     return {"name": directory.name, "grid": scenario["grid"], "start": scenario["start"],
             "goal": scenario["goal"], "start_tick": scenario.get("start_tick", 0),
             "horizon": scenario["horizon"], "tick_seconds": scenario["tick_seconds"],
@@ -96,9 +96,10 @@ def export_viewer(directory, output=None, repetition=0, force=False):
             child.write_text(render_viewer(subset))
             result = forecast["result"]
             cost = '—' if result['cost_ticks'] is None else f"{result['cost_ticks']*.1:.1f} s"
+            timing = 'skipped: unchanged prediction' if result.get('planner_invoked') is False else f"{forecast['median_total_us']/1000:.3f}"
             rows.append(f'<tr><td><a href="{html.escape(child.name, quote=True)}">{html.escape(forecast["id"])}</a></td>'
                         f'<td>{html.escape(result["status"])}</td><td>{cost}</td>'
-                        f'<td>{forecast["median_total_us"]/1000:.3f}</td><td>{result["expansions"]:,}</td></tr>')
+                        f'<td>{timing}</td><td>{result["expansions"]:,}</td></tr>')
         name = html.escape(str(data.get('metadata', {}).get('map_name', data['name'])))
         paper = data.get('metadata', {}).get('dataset_kind') == 'paper_samples'
         back = '<a href="../index.html">← Choose another map</a>' if paper else ''

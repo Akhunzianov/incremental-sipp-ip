@@ -9,6 +9,7 @@ import statistics
 import subprocess
 
 from .model import load
+from .events import POLICY, planning_events
 from .runner import ROOT, ensure_built, solve_batch
 from .validation import oracle, validate
 
@@ -51,6 +52,8 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
                  timeout=120, check_oracle=False):
     source = Path(scenario_path).resolve()
     scenario = load(source)
+    selected,decisions = planning_events(scenario)
+    query_scenario = {**scenario,'forecasts':selected}
     output = Path(output)
     if output.exists():
         raise ValueError(f'output already exists: {output}')
@@ -67,9 +70,14 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
                 'flags':FLAGS,'binary_sha256':{k:hashlib.sha256(v.read_bytes()).hexdigest() for k,v in binaries.items()},
                 'repeats':repeats,'warmups':warmups,'max_expansions':max_expansions,'timeout_seconds_per_batch':timeout,
                 'oracle':check_oracle,'complete':False}
+    manifest.update({'evaluation_policy':POLICY,'received_forecasts':len(decisions),
+                     'planner_queries':len(selected),'skipped_forecasts':len(decisions)-len(selected),
+                     'driver_sha256':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in
+                                      ('sipp_baseline/repair.py','sipp_baseline/runner.py','sipp_baseline/events.py','sipp_baseline/model.py')}})
+    (output/'events.json').write_text(json.dumps(decisions,indent=2)+'\n')
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    reference = [oracle(scenario,f) for f in scenario['forecasts']] if check_oracle else None
-    samples = {name:[[] for _ in scenario['forecasts']] for name in binaries}
+    reference = [oracle(scenario,f) for f in selected] if check_oracle else None
+    samples = {name:[[] for _ in selected] for name in binaries}
     streams = {name:(output/f'{name}.jsonl').open('w') for name in binaries}
     try:
         for repetition in range(-warmups,repeats):
@@ -77,8 +85,8 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
             # Alternate execution order to reduce systematic warm-cache bias.
             order = list(binaries) if repetition%2==0 else list(reversed(binaries))
             for name in order:
-                results[name] = solve_batch(scenario,max_expansions=max_expansions,binary=binaries[name],timeout=timeout)
-            for i,forecast in enumerate(scenario['forecasts']):
+                results[name] = solve_batch(query_scenario,max_expansions=max_expansions,binary=binaries[name],timeout=timeout)
+            for i,forecast in enumerate(selected):
                 verdict = classify_pair(results['baseline'][i],results['incremental'][i])
                 for name in binaries:
                     row = results[name][i]
@@ -97,7 +105,7 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
         for stream in streams.values():
             stream.close()
     rows = []
-    for i,forecast in enumerate(scenario['forecasts']):
+    for i,forecast in enumerate(selected):
         base,inc = samples['baseline'][i],samples['incremental'][i]
         a,b = base[0],inc[0]
         if any((r['status'],r['cost_ticks'])!=(a['status'],a['cost_ticks']) for r in base):
@@ -117,7 +125,9 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
     with (output/'comparison.csv').open('w',newline='') as stream:
         writer = csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
     updates = rows[1:]
-    aggregate = {'queries':len(rows),'verdicts':dict(Counter(row['verdict'] for row in rows)),
+    aggregate = {'evaluation_policy':POLICY,'received_forecasts':len(decisions),
+                 'skipped_forecasts':len(decisions)-len(selected),'replanning_events':len(rows)-1,
+                 'queries':len(rows),'verdicts':dict(Counter(row['verdict'] for row in rows)),
                  'initial':rows[0], 'updates':{
                      'baseline_total_us':sum(r['baseline_us'] for r in updates),
                      'incremental_total_us':sum(r['incremental_us'] for r in updates),
@@ -138,7 +148,7 @@ def compare_suite(suite_directory, output, repeats=3, warmups=1, max_expansions=
         raise ValueError('source q suite is incomplete')
     output = Path(output)
     config = {'source_suite':str(suite_directory),'repeats':repeats,'warmups':warmups,
-              'max_expansions':max_expansions,'timeout':timeout}
+              'max_expansions':max_expansions,'timeout':timeout,'evaluation_policy':POLICY}
     if output.exists():
         if not resume or json.loads((output/'suite-summary.json').read_text())['config']!=config:
             raise ValueError('output exists or comparison settings differ; use a matching --resume')
@@ -150,11 +160,11 @@ def compare_suite(suite_directory, output, repeats=3, warmups=1, max_expansions=
         for row in summaries:
             initial,u = row['initial'],row['updates']
             lines.append('<tr>'+''.join(f'<td>{html.escape(str(x))}</td>' for x in
-                [row['map'],row['q'],f"{row['verdicts'].get('matched',0)}/{row['queries']}",
+                [row['map'],row['q'],row['received_forecasts'],row['skipped_forecasts'],row['replanning_events'],f"{row['verdicts'].get('matched',0)}/{row['queries']}",
                  f"{initial['incremental_us']/initial['baseline_us']:.2f}×",f"{u['baseline_total_us']/1000:.2f}",
-                 f"{u['incremental_total_us']/1000:.2f}",f"{u['speedup']:.2f}×" if u['speedup'] else '—',
+                 f"{u['incremental_total_us']/1000:.2f}",f"{u['speedup']:.2f}×" if u['speedup'] else '— (no replans)',
                  u['baseline_expansions'],u['incremental_expansions']])+f'<td><a href="{row["directory"]}/comparison.csv">CSV</a></td></tr>')
-        page='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIPP-IP repair comparison</title><style>body{font:15px/1.6 system-ui;background:#f3f5f5;color:#172c37;margin:30px}main{max-width:1450px;margin:auto}table{border-collapse:collapse;background:white;width:100%;font-size:13px}th,td{padding:10px;border-bottom:1px solid #d8e1e4;text-align:left}p{color:#526a75}a{color:#225ed5}.scroll{overflow:auto}</style><main><h1>Incremental repair vs full replanning</h1><p>'''+('Complete' if complete else 'In progress')+''' · same saved forecasts, costs and paths checked. Initial overhead is incremental time / baseline time. Update speedup is baseline time / incremental time; values below 1 mean repair was slower.</p><div class="scroll"><table><thead><tr><th>Map</th><th>q</th><th>Matched</th><th>Initial overhead</th><th>Full updates (ms)</th><th>Repair updates (ms)</th><th>Update speedup</th><th>Full expansions</th><th>Repair expansions</th><th>Details</th></tr></thead><tbody>'''+''.join(lines)+'''</tbody></table></div><p>Times include input parsing, normalization, diff, repair and search; incremental maintenance includes compaction. Retained cache disposal at process exit is outside incremental per-query time. Each repetition starts a fresh planner and replays the whole sequence. Resource-limited pairs are inconclusive, not correctness matches. These are exploratory measurements on one environment seed.</p><a href="suite-summary.json">Full summary JSON</a></main></html>'''
+        page='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIPP-IP repair comparison</title><style>body{font:15px/1.6 system-ui;background:#f3f5f5;color:#172c37;margin:30px}main{max-width:1450px;margin:auto}table{border-collapse:collapse;background:white;width:100%;font-size:13px}th,td{padding:10px;border-bottom:1px solid #d8e1e4;text-align:left}p{color:#526a75}a{color:#225ed5}.scroll{overflow:auto}</style><main><h1>Incremental repair vs full replanning</h1><p>'''+('Complete' if complete else 'In progress')+''' · Planning runs initially and only when effective reservations change. Identical snapshots are skipped for both planners; q=0 has no replans or update speedup. Costs and paths checked. Initial overhead is incremental time / baseline time. Update speedup is baseline time / incremental time; values below 1 mean repair was slower.</p><div class="scroll"><table><thead><tr><th>Map</th><th>q</th><th>Received</th><th>Skipped</th><th>Replans</th><th>Matched</th><th>Initial overhead</th><th>Full updates (ms)</th><th>Repair updates (ms)</th><th>Update speedup</th><th>Full expansions</th><th>Repair expansions</th><th>Details</th></tr></thead><tbody>'''+''.join(lines)+'''</tbody></table></div><p>A shared prediction-change filter runs before either planner and is outside the planner timings. Candidate prediction revisions may occur periodically; their arrival alone never triggers planning. Times include planner input parsing, normalization, diff, repair and search; incremental maintenance includes compaction. Retained cache disposal at process exit is outside incremental per-query time. Each repetition starts a fresh planner and replays the whole sequence. Resource-limited pairs are inconclusive, not correctness matches. These are exploratory measurements on one environment seed.</p><a href="suite-summary.json">Full summary JSON</a></main></html>'''
         (output/'index.html').write_text(page)
     write_report(False)
     for run in suite['runs']:
@@ -166,6 +176,9 @@ def compare_suite(suite_directory, output, repeats=3, warmups=1, max_expansions=
             manifest = json.loads((destination/'manifest.json').read_text())
             if not resume or not manifest.get('complete'):
                 raise ValueError(f'cannot reuse incomplete comparison: {destination}')
+            if manifest.get('evaluation_policy')!=POLICY or any(hashlib.sha256((ROOT/p).read_bytes()).hexdigest()!=digest
+                    for p,digest in manifest.get('driver_sha256',{}).items()) or not manifest.get('driver_sha256'):
+                raise ValueError(f'cannot resume a different evaluation policy or driver: {destination}')
             binaries = {'baseline':ensure_built(),'incremental':ensure_incremental()}
             sources = {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in manifest['source_sha256']}
             if (sources!=manifest['source_sha256'] or
