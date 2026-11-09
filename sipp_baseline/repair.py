@@ -61,7 +61,7 @@ def compare_case(scenario_path, output, repeats=3, warmups=1, max_expansions=2_0
     output.mkdir(parents=True)
     binaries = {'baseline':ensure_built(),'incremental':ensure_incremental()}
     sources = {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest()
-               for p in ('src/planner.cpp','src/incremental.cpp','src/model.hpp')}
+               for p in ('src/planner.cpp','src/incremental.cpp','src/model.hpp','src/fresh.hpp')}
     try:
         revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     except subprocess.CalledProcessError:

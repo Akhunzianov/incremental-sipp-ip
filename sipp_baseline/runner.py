@@ -27,7 +27,7 @@ def ensure_built(binary=None):
             raise ValueError(f"binary does not exist: {path}")
         return path
     if not BINARY.exists() or any((ROOT / path).stat().st_mtime > BINARY.stat().st_mtime
-                                 for path in ('src/planner.cpp','src/model.hpp')):
+                                 for path in ('src/planner.cpp','src/model.hpp','src/fresh.hpp')):
         build()
     return BINARY
 

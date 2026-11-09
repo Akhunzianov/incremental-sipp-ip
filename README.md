@@ -346,3 +346,29 @@ Tests compare 240 random snapshots with a separate time-expanded search, verify
 the important deterministic boundary/update cases, validate reconstructed paths,
 and compare 24 generated snapshots against the unmodified upstream planner.
 These checks provide implementation evidence, not a general proof.
+
+## Adaptive full-replan fallback
+
+Build the optional planner with `make build-adaptive`. The binary
+`build/sipp_ip_adaptive` accepts the same forecast protocol as the baseline.
+The first query constructs the repair cache. On subsequent queries, the planner
+counts free cells whose normalized blocked intervals differ from the forecast
+that owns the cache. When at least 32 cells and at least 10% of the free map
+differ, it runs the baseline search. The fresh result is returned immediately
+and the previous repair cache remains available for later queries. A small edit
+relative to a substantially different forecast can therefore trigger another
+full search. Each output row records its strategy.
+
+The threshold was chosen using seed 7. Replay the seed-11 comparison from the
+repository root with the following command and a new output filename.
+
+```sh
+python3 -m sipp_baseline.adaptive runs/diverse-scenarios runs/local-scenarios \
+  examples/diverse-pulses --seed 11 --output runs/adaptive-replay.jsonl
+```
+
+The comparison applies the effective-change event policy to all three planners.
+It rotates execution order, uses one warm-up and three measured trials, validates
+paths and checks status and cost against full replanning. Engineered cases also
+use the independent oracle. Records contain the individual native timings and
+the strategy chosen for each invoked query. Update totals exclude initial search.

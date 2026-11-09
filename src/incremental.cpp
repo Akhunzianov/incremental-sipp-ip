@@ -1,5 +1,8 @@
 // Fixed-start witness-based SIPP-IP repair. See docs/repair-design.md.
 #include "model.hpp"
+#ifdef SIPP_ADAPTIVE
+#include "fresh.hpp"
+#endif
 #include <limits>
 #include <stdexcept>
 #include <tuple>
@@ -440,10 +443,38 @@ bool read_input(Input& p,int h,int w){
     for(auto& b:p.blocked)b=normalize(b);
     return true;
 }
+#ifdef SIPP_ADAPTIVE
+// Compare against the forecast that actually owns the retained witnesses.
+bool broad_change(const Input& cached,const Input& next) {
+    size_t free_cells=0,changed=0;
+    for(int r=0;r<next.h;++r) for(int c=0;c<next.w;++c) {
+        if(next.grid[r][c]!='.') continue;
+        ++free_cells;
+        size_t index=r*next.w+c;
+        if(next.blocked[index]!=cached.blocked[index]) ++changed;
+    }
+    return changed>=32 && changed*10>=free_cells;
+}
+void solve_fallback(Input&& input,Clock::time_point begin) {
+    auto p=std::make_unique<Planner>();
+    std::tie(p->h,p->w,p->horizon,p->sr,p->sc,p->so,p->sv,p->start,p->gr,p->gc,p->gv,p->limit)=
+        std::tie(input.h,input.w,input.horizon,input.sr,input.sc,input.so,input.sv,input.start,input.gr,input.gc,input.gv,input.limit);
+    p->grid=std::move(input.grid);
+    p->blocked=std::move(input.blocked);
+    p->closed.resize(p->h*p->w*8);
+    run_fresh(std::move(p),begin,true);
+}
+#endif
 int main(){
     std::ios::sync_with_stdio(false);std::unique_ptr<Incremental> planner;int h,w;
     while(std::cin>>h>>w){
         auto begin=Clock::now();Input input;if(!read_input(input,h,w))return 2;auto parsed=Clock::now();
+#ifdef SIPP_ADAPTIVE
+        if(planner && planner->same_query(input) && broad_change(planner->env,input)) {
+            solve_fallback(std::move(input),begin);
+            continue;
+        }
+#endif
         bool reuse=false;
         if(!planner||!planner->same_query(input))planner=std::make_unique<Incremental>(std::move(input));
         else reuse=planner->update(std::move(input));
@@ -458,7 +489,11 @@ int main(){
         auto searched=Clock::now();
         auto steps=answer.second<0?std::vector<Step>{}:planner->reconstruct(answer.second);
         auto finished=Clock::now();const auto& p=*planner;const auto& s=p.stats;
-        std::cout<<"{\"algorithm\":\"incremental-sipp-ip\",\"status\":\""<<answer.first<<"\",\"cost_ticks\":";
+        std::cout<<"{";
+#ifdef SIPP_ADAPTIVE
+        std::cout<<"\"strategy\":\"repair\",";
+#endif
+        std::cout<<"\"algorithm\":\"incremental-sipp-ip\",\"status\":\""<<answer.first<<"\",\"cost_ticks\":";
         if(answer.second<0)std::cout<<"null";else std::cout<<p.labels[answer.second].n.lo;
         std::cout<<",\"setup_us\":"<<micros(begin,parsed)<<",\"diff_us\":"<<p.diff_us<<",\"repair_us\":"<<p.repair_us
                  <<",\"maintenance_us\":"<<micros(parsed,repaired)<<",\"compaction_us\":"<<p.compaction_us
