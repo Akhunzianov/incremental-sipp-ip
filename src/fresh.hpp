@@ -1,6 +1,9 @@
 #pragma once
 #include "model.hpp"
 #include "profile.hpp"
+#ifdef SIPP_ON_DEMAND
+#include "expansion_cache.hpp"
+#endif
 struct Planner {
     int h,w,horizon,sr,sc,so,sv,start,gr,gc,gv;
     long long limit;
@@ -10,6 +13,45 @@ struct Planner {
 #ifdef SIPP_WITNESS_AUDIT
     struct TimedExpansion {int key,lo,hi; double us;};
     std::vector<TimedExpansion> trace;
+#endif
+#ifdef SIPP_ON_DEMAND
+    ExpansionCache *destination=nullptr;
+    const ExpansionCache *previous=nullptr;
+    ExpansionCache cache;
+    std::vector<char> changed;
+    std::vector<signed char> clean;
+    long long hits=0,clipped=0,probes=0;
+    double lookup_us=0,credit_us=0;
+    const ExpansionCache::Record* lookup(const Node& n,int k) {
+        if(!previous) return nullptr;
+        ++probes;
+        const auto* record=previous->containing(k,n.lo,n.hi);
+        if(!record) return nullptr;
+        // The static map, horizon and primitive set match. Check destination
+        // cells too, since stopped children extend to the next blocked tick.
+        if(clean[k]<0) {
+            clean[k]=1;
+            for(const auto& motion:primitives[n.o][n.v])
+                for(const auto& t:motion.touches) {
+                    int r=n.r+t.dr,c=n.c+t.dc;
+                    if(inside(r,c) && changed[cell(r,c)]) clean[k]=0;
+                }
+        }
+        return clean[k]?record:nullptr;
+    }
+    void replay(const ExpansionCache::Record& record,const Node& source,int parent) {
+        for(int i=record.first;i<record.last;++i) {
+            Node child=previous->children[i];
+            child.dep_lo=std::max(child.dep_lo,source.lo);
+            child.dep_hi=std::min(child.dep_hi,source.hi);
+            if(child.dep_lo>child.dep_hi) continue;
+            int duration=primitives[source.o][source.v][child.action].duration;
+            child.lo=child.dep_lo+duration;
+            if(child.v) child.hi=child.dep_hi+duration;
+            child.parent=parent;
+            push(child);
+        }
+    }
 #endif
     Actions primitives=actions(); Stats stats;
     using Entry=std::tuple<int,int,int,int>; // f, distance, -upper, stable node id
@@ -54,6 +96,34 @@ struct Planner {
             push({r,c,p.orientation,p.velocity,lo,hi,parent,action,a,b});
         }
     }
+    void project_all(const Node& n,int id) {
+        for(int a=0;a<static_cast<int>(primitives[n.o][n.v].size());++a) project(n,id,a);
+    }
+    void expand_actions(const Node& n,int id) {
+#ifdef SIPP_ON_DEMAND
+        int first=static_cast<int>(nodes.size());
+#ifdef SIPP_LOOKUP_AUDIT
+        auto before_lookup=Clock::now();
+#endif
+        const auto* record=lookup(n,key(n));
+        if(record) {
+            ++hits;
+            clipped+=(n.lo!=record->lo || n.hi!=record->hi);
+        }
+#ifdef SIPP_LOOKUP_AUDIT
+        auto after_lookup=Clock::now();
+        if(previous) lookup_us+=std::chrono::duration<double,std::micro>(after_lookup-before_lookup).count();
+        project_all(n,id);
+        if(record) credit_us+=std::chrono::duration<double,std::micro>(Clock::now()-after_lookup).count();
+#else
+        if(record) replay(*record,n,id);
+        else project_all(n,id);
+#endif
+        if(destination) cache.record(key(n),n.lo,n.hi,first,static_cast<int>(nodes.size()));
+#else
+        project_all(n,id);
+#endif
+    }
     std::pair<std::string,int> search() {
         int end=safe_end(sr,sc,start);
         if(end<start || grid[sr][sc]=='#') return {"invalid_start",-1};
@@ -75,7 +145,7 @@ struct Planner {
 #endif
             ++stats.expansions;
             auto& coverage=closed[key(n)]; coverage.push_back({n.lo,n.hi}); coverage=normalize(coverage);
-            for(int a=0;a<static_cast<int>(primitives[n.o][n.v].size());++a) project(n,id,a);
+            expand_actions(n,id);
 #ifdef SIPP_WITNESS_AUDIT
             trace.push_back({key(n),n.lo,n.hi,std::chrono::duration<double,std::micro>(Clock::now()-expansion_start).count()});
 #endif
@@ -107,10 +177,26 @@ inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin,
     auto steps=goal<0?std::vector<Step>{}:p.reconstruct(goal); auto finished=Clock::now();
     int cost=goal<0?-1:p.nodes[goal].lo; auto stats=p.stats;
     if(saved) { saved->cost=cost; saved->steps=steps; }
+#ifdef SIPP_ON_DEMAND
+    if(p.destination) {
+        p.cache.children=std::move(p.nodes);
+        *p.destination=std::move(p.cache);
+    }
+    auto hits=p.hits,clipped=p.clipped,probes=p.probes;
+    double lookup_us=p.lookup_us,credit_us=p.credit_us;
+#endif
     { PROFILE_PHASE(release); planner.reset(); } auto destroyed=Clock::now();
     std::cout<<"{";
     PROFILE_EMIT();
-    if(adaptive) std::cout<<"\"strategy\":\"full_replan\",\"decision_us\":"<<decision_us<<",";
+#ifdef SIPP_ON_DEMAND
+    std::cout<<"\"batch_hits\":"<<hits<<",\"clipped_hits\":"<<clipped<<",\"probes\":"<<probes
+             <<",\"lookup_us\":"<<lookup_us<<",\"credit_us\":"<<credit_us<<",";
+#endif
+    const char* strategy="full_replan";
+#if defined(SIPP_ON_DEMAND) && !defined(SIPP_LOOKUP_AUDIT)
+    if(probes) strategy="on_demand_search";
+#endif
+    if(adaptive) std::cout<<"\"strategy\":\""<<strategy<<"\",\"decision_us\":"<<decision_us<<",";
     std::cout<<"\"status\":\""<<status<<"\",\"cost_ticks\":";
     if(goal<0) std::cout<<"null"; else std::cout<<cost;
     std::cout<<",\"setup_us\":"<<elapsed(begin,ready)<<",\"search_us\":"<<elapsed(ready,searched)

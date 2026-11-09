@@ -24,7 +24,7 @@ def committed_segment_free(data, forecast, step, first, last):
     return True
 
 
-def replay(data, minimum, percent, paired=False, projection_reuse=False, suffix_fresh=False):
+def replay(data, minimum, percent, paired=False, projection_reuse=False, suffix_fresh=False, on_demand=False):
     forecasts,_ = planning_events(data)
     state, tick = data['start'],data.get('start_tick',0)
     queries = []
@@ -63,10 +63,10 @@ def replay(data, minimum, percent, paired=False, projection_reuse=False, suffix_
             outcome = 'committed_motion_conflict'
             break
     payload = ''.join(protocol(q,f,1_000_000) for q,f,r in queries)
-    binary = ROOT/'build/sipp_ip_adaptive'
+    binary = ROOT/'build'/('on_demand' if on_demand else 'sipp_ip_adaptive')
     commands={'adaptive':[binary,str(minimum),str(percent)]}
-    if suffix_fresh:
-        if paired or projection_reuse:raise ValueError('choose one moving policy')
+    if suffix_fresh or on_demand:
+        if paired or projection_reuse or (suffix_fresh and on_demand):raise ValueError('choose one moving policy')
         commands['adaptive'].append('--suffix-fresh')
     if projection_reuse or paired:
         commands['adaptive'].append('--projection-reuse')
@@ -109,15 +109,16 @@ def main():
     p.add_argument('--percent',type=int,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--suffix-fresh',action='store_true',help='retain a certified path and use fresh SIPP-IP on a miss')
+    p.add_argument('--on-demand',action='store_true',help='try cached outgoing motions after a fresh interval is reached')
     p.add_argument('--projection-reuse',action='store_true',help='enable moving-root projection transfer')
     p.add_argument('--paired',action='store_true',help='compare projection reuse, suffix only and full replanning over three timed trials')
     args=p.parse_args()
-    subprocess.run(['make','build-adaptive'],cwd=ROOT,check=True)
+    subprocess.run(['make','build/on_demand' if args.on_demand else 'build-adaptive'],cwd=ROOT,check=True)
     counts=Counter()
     with args.output.open('x') as stream:
         for case in json.loads((args.suite/'suite.json').read_text())['cases']:
             if case['seed']!=args.seed:continue
-            result=replay(load(args.suite/case['directory']/'scenario.json'),args.minimum,args.percent,args.paired,args.projection_reuse,args.suffix_fresh)
+            result=replay(load(args.suite/case['directory']/'scenario.json'),args.minimum,args.percent,args.paired,args.projection_reuse,args.suffix_fresh,args.on_demand)
             counts[result['outcome']]+=1
             stream.write(json.dumps(dict(case=case['directory'],**result))+'\n')
     print(dict(counts))

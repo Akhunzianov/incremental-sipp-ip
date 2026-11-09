@@ -381,3 +381,7 @@ profile](docs/moving-fresh-search.md) for the protocol and measurements.
 The [moving-start witness audit](docs/moving-witness-audit.md) measures how
 much of the old search can be reached from the new robot state, how often a
 fresh planner expands those intervals, and the cost of identifying them.
+
+The [on-demand reuse experiment](docs/on-demand-reuse.md) checks old outgoing
+motions when fresh search reaches an interval and compares whole episodes on
+two new seeds. Use `sipp_baseline.moving_replay --on-demand` to replay this policy.

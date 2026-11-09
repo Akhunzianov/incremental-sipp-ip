@@ -572,13 +572,30 @@ bool broad_change(const Input& cached,const Input& next,int minimum,int percent)
     }
     return changed>0 && changed>=static_cast<size_t>(minimum) && changed*100>=free_cells*percent;
 }
-void solve_fallback(Input&& input,Clock::time_point begin,double decision_us,FreshSolution* saved=nullptr) {
+void solve_fallback(Input&& input,Clock::time_point begin,double decision_us,FreshSolution* saved=nullptr
+#ifdef SIPP_ON_DEMAND
+                    ,ExpansionCache* cache=nullptr,Input* previous=nullptr
+#endif
+                    ) {
     auto p=std::make_unique<Planner>();
     std::tie(p->h,p->w,p->horizon,p->sr,p->sc,p->so,p->sv,p->start,p->gr,p->gc,p->gv,p->limit)=
         std::tie(input.h,input.w,input.horizon,input.sr,input.sc,input.so,input.sv,input.start,input.gr,input.gc,input.gv,input.limit);
     p->grid=std::move(input.grid);
     p->blocked=std::move(input.blocked);
     p->closed.resize(p->h*p->w*8);
+#ifdef SIPP_ON_DEMAND
+    if(cache) {
+        p->destination=cache;
+        p->cache.heads.assign(p->closed.size(),-1);
+        if(!cache->heads.empty() && previous->grid==p->grid && previous->horizon==p->horizon) {
+            p->previous=cache;
+            p->clean.assign(p->closed.size(),-1);
+            p->changed.resize(p->blocked.size());
+            for(size_t i=0;i<p->changed.size();++i) p->changed[i]=p->blocked[i]!=previous->blocked[i];
+        }
+        *previous=Input{};
+    }
+#endif
     run_fresh(std::move(p),begin,true,decision_us,saved);
 }
 #endif
@@ -596,6 +613,9 @@ int main(int argc,char** argv){
     bool transfer=argc==4 && std::string_view(argv[3])=="--projection-reuse";
     bool suffix_fresh=argc==4 && std::string_view(argv[3])=="--suffix-fresh";
     if(transfer || suffix_fresh) --argc;
+#ifdef SIPP_ON_DEMAND
+    ExpansionCache cache;
+#endif
     Input saved_forecast{};
     FreshSolution saved;
     const Actions motions=actions();
@@ -637,8 +657,14 @@ int main(){
         }
         if(suffix_fresh) {
             double decision_us=micros(parsed,Clock::now());
+#ifdef SIPP_ON_DEMAND
+            Input previous=std::move(saved_forecast);
+            saved_forecast=input;
+            solve_fallback(std::move(input),begin,decision_us,&saved,&cache,&previous);
+#else
             saved_forecast=input;
             solve_fallback(std::move(input),begin,decision_us,&saved);
+#endif
             continue;
         }
         if(planner) planner->projection_hits=planner->empty_hits=planner->clipped_hits=0;
