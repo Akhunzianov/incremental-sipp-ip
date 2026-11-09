@@ -90,3 +90,24 @@ class VisualizationTests(unittest.TestCase):
             envelope = json.loads(html.split('<script id="replay-data" type="application/json">')[1].split('</script>')[0])
             self.assertEqual(envelope['encoding'], 'gzip-base64')
             self.assertEqual(json.loads(gzip.decompress(base64.b64decode(envelope['payload']))), payload)
+
+    def test_oversized_viewer_splits_without_changing_test_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self.fixture(directory)
+            data = viewer_data(directory)
+            data['forecasts'].append(copy.deepcopy(data['forecasts'][0]))
+            data['forecasts'][1]['id'] = 'second instance'
+            with patch('sipp_baseline.visualize.viewer_data', return_value=data), patch('sipp_baseline.visualize.MAX_VIEWER_BYTES', 1):
+                output = export_viewer(directory)
+            index = output.read_text()
+            self.assertIn('viewer-instance-01.html', index)
+            self.assertIn('viewer-instance-02.html', index)
+            self.assertNotIn('<script>alert(', index)
+            for i, expected in enumerate(data['forecasts'], 1):
+                child = directory / f'viewer-instance-{i:02}.html'
+                payload = child.read_text().split('<script id="replay-data" type="application/json">')[1].split('</script>')[0]
+                decoded = json.loads(payload)
+                self.assertEqual(decoded['forecasts'], [expected])
+                self.assertEqual(decoded['grid'], data['grid'])
+                self.assertEqual(decoded['metadata']['viewer_index'], 'viewer.html')

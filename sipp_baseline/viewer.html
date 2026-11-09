@@ -164,6 +164,7 @@ if(paper){
  document.querySelector('.footer').textContent='Independent original samples, not forecast revisions. Source interval times are multiplied by 10 exactly as in the authors’ loader. Occupied endpoints are inclusive; robot position is illustrative and swept cells use the exact primitive table. Validation ends at arrival. Large viewers use browser-native gzip decompression.';
 }
 data.forecasts.forEach((f,i)=>{const option=document.createElement('option');option.value=i;option.textContent=f.id;$('forecast').append(option);});
+if(data.metadata.viewer_index){$('source-note').hidden=false;const back=document.createElement('a');back.href=data.metadata.viewer_index;back.textContent='← All tests on this map';$('source-note').prepend(back,document.createTextNode(' · '));}
 for(const id of ['time','tick']){$(id).min=data.start_tick;$(id).max=data.horizon;$(id).addEventListener('input',()=>{stop();setTick($(id).value);});}
 $('forecast').onchange=()=>selectForecast(Number($('forecast').value));$('previous').onclick=()=>selectForecast(selected-1);$('next').onclick=()=>selectForecast(selected+1);
 $('reset').onclick=()=>{stop();setTick(data.start_tick);};$('back').onclick=()=>{stop();setTick(tick-1);};$('forward').onclick=()=>{stop();setTick(tick+1);};

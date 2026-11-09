@@ -127,7 +127,10 @@ compared with the authors' saved SIPP-IP results and reported both in the viewer
 and `verification.json`. Our timings are not the paper's runtimes. An
 `expansion_limit` result is inconclusive even if the source reports no solution.
 Large HTML viewers embed gzip-compressed data and require a current browser with
-native `DecompressionStream` support; they remain offline, self-contained files.
+native `DecompressionStream` support. Bundles above 8 MB (including Sydney) are
+automatically split into a small selection page and one self-contained viewer per
+test. Keep these HTML files together for navigation; individual test viewers can
+still be opened offline on their own.
 
 Sources: [paper, Empirical Evaluation](https://arxiv.org/html/2302.00776)
 and [pinned sample release](https://github.com/PathPlanning/SIPP-IP/tree/77ca7491345c00b1cec7d0b88fe96cc561e0be25/tests).
