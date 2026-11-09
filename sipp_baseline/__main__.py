@@ -10,6 +10,7 @@ from .runner import benchmark, build, summarize
 from .visualize import export_viewer
 from .paper import MAPS, build_paper_viewers
 from .suite import DEFAULT_Q, build_suite
+from .repair import build_incremental, compare_case, compare_suite
 
 
 def nonnegative(text):
@@ -34,9 +35,10 @@ def probability(text):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fixed-start SIPP-IP: full replan on every forecast")
+    parser = argparse.ArgumentParser(description="Fixed-start SIPP-IP: full replanning and persistent interval repair")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("build", help="compile the C++17 planner with g++")
+    commands.add_parser('build-incremental',help='compile the persistent interval-repair planner')
     gen = commands.add_parser("generate", help="save a seeded forecast sequence")
     gen.add_argument("--output", required=True, type=Path)
     gen.add_argument("--map", type=Path)
@@ -93,10 +95,28 @@ def main():
     sweep.add_argument('--timeout',type=positive,default=120)
     sweep.add_argument('--generation-timeout',type=positive,default=120)
     sweep.add_argument('--resume',action='store_true')
+    repair = commands.add_parser('compare-repair',help='differential-test repair against full replanning on one saved scenario')
+    repair.add_argument('scenario',type=Path)
+    repair.add_argument('--output',type=Path,required=True)
+    repair.add_argument('--repeats',type=positive,default=3)
+    repair.add_argument('--warmups',type=nonnegative,default=1)
+    repair.add_argument('--max-expansions',type=nonnegative,default=2000000)
+    repair.add_argument('--timeout',type=positive,default=120)
+    repair.add_argument('--oracle',action='store_true')
+    repair_suite = commands.add_parser('compare-repair-suite',help='compare repair/full replanning on every run in a saved q suite')
+    repair_suite.add_argument('suite',type=Path)
+    repair_suite.add_argument('--output',type=Path,required=True)
+    repair_suite.add_argument('--repeats',type=positive,default=3)
+    repair_suite.add_argument('--warmups',type=nonnegative,default=1)
+    repair_suite.add_argument('--max-expansions',type=positive,default=2000000)
+    repair_suite.add_argument('--timeout',type=positive,default=120)
+    repair_suite.add_argument('--resume',action='store_true')
     args = parser.parse_args()
     try:
         if args.command == "build":
             print(build())
+        elif args.command == 'build-incremental':
+            print(build_incremental())
         elif args.command == "generate":
             if args.output.exists():
                 raise ValueError(f"output already exists: {args.output}")
@@ -125,6 +145,12 @@ def main():
                               updates=args.updates,update_interval=args.update_interval,horizon=args.horizon,
                               repeats=args.repeats,warmups=args.warmups,max_expansions=args.max_expansions,
                               timeout=args.timeout,generation_timeout=args.generation_timeout,resume=args.resume))
+        elif args.command == 'compare-repair':
+            print(json.dumps(compare_case(args.scenario,args.output,args.repeats,args.warmups,
+                                          args.max_expansions,args.timeout,args.oracle),indent=2))
+        elif args.command == 'compare-repair-suite':
+            print(compare_suite(args.suite,args.output,args.repeats,args.warmups,
+                                args.max_expansions,args.timeout,args.resume))
         else:
             print(json.dumps(summarize(args.results, args.output), indent=2))
     except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:

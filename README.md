@@ -1,8 +1,9 @@
-# Incremental SIPP-IP research: full-replanning baseline
+# Incremental SIPP-IP research: full replanning and interval repair
 
 Working fixed-start baseline: each forecast snapshot constructs a **fresh SIPP-IP
 search**, returns a concrete timed trajectory, validates it, and records timings
-and search counters. No search state is reused between snapshots.
+and search counters. A second planner now retains interval witnesses and repairs
+their dependencies across snapshots. Both planners use the same saved forecasts.
 
 The production planner is a C++17 adaptation of interval projection with the
 authors' exact primitive tables. It is **not an unchanged upstream executable**;
@@ -25,6 +26,7 @@ Without Make:
 
 ```sh
 python3 -m sipp_baseline build
+python3 -m sipp_baseline build-incremental
 python3 -m unittest discover -s tests -v
 python3 -m sipp_baseline run examples/corridor.json --output runs/corridor --oracle
 ```
@@ -33,6 +35,32 @@ The corridor sequence must produce costs **100, 126, 100, no path, 100** ticks.
 One tick is 0.1 seconds. `--oracle` also verifies feasibility and optimal cost
 using an independent time-expanded Dijkstra; use it only on small cases.
 Output paths must be new: existing runs are never silently overwritten.
+
+## Compare incremental repair with full replanning
+
+```sh
+python3 -m sipp_baseline compare-repair examples/corridor.json \
+  --output runs/corridor-repair --repeats 3 --warmups 1 --oracle
+python3 -m sipp_baseline compare-repair-suite runs/q-comparison \
+  --output runs/repair-comparison-new --repeats 3 --warmups 1 --timeout 180
+```
+
+The suite command replays the existing five-map q suite without regenerating or
+copying its scenarios. Open the output `index.html` for the comparison table.
+Each case contains raw `baseline.jsonl` and `incremental.jsonl`, `comparison.csv`,
+`summary.json`, and a manifest with input, source and executable hashes. Every
+returned trajectory is validated; status/cost disagreements stop the run and
+write `mismatch.json`. Resource-limited results are inconclusive. `--resume`
+reuses completed cases only when their inputs and planner hashes still match.
+
+The incremental executable accepts the same line protocol as the baseline and
+retains state between queries in one process. Changing the fixed query resets
+its cache. The Python API is `sipp_baseline.repair.solve_incremental(scenario)`.
+
+See [the implementation and measured results](docs/repair-results.md): all 150
+five-map queries matched, but most changing-forecast cases were slower than
+full replanning. This prototype establishes tested repair behavior; further work
+is needed to make dependency maintenance pay off on those cases.
 
 ## Generate and measure forecast updates
 
@@ -235,22 +263,18 @@ Rebuild summaries with:
 python3 -m sipp_baseline summarize runs/corridor/results.jsonl --output runs/corridor/summary-new.csv
 ```
 
-## Scope and next integration point
+## Scope
 
-The proposed fixed-start incremental algorithm and repair rules are documented
-in [the repair design](docs/repair-design.md). This is a design and proof plan;
-the executable baseline continues to replan from scratch.
+The fixed-start incremental algorithm and repair rules are documented in
+[the repair design](docs/repair-design.md); the independent baseline continues
+to replan from scratch.
 
 See [the model specification](docs/model.md) before interpreting a benchmark.
 This milestone includes full replanning, replay, synthetic updates, map import,
-validation, a small exact oracle, and measurements. It does not implement
-incremental repair, a moving start, continuous geometric collision checking, or
-the full paper experiment corpus.
-
-For a future incremental planner, keep the same saved scenario and result
-contract and compare each forecast's status/cost against this baseline. Keep
-its dependency-maintenance time inside its reported total. The initial plan
-`P0` should be reported separately from update queries `P1...Pk`.
+validation, a small exact oracle, incremental interval repair, and measurements.
+It does not implement a moving start, continuous geometric collision checking,
+or the full paper experiment corpus. Dependency maintenance is included in
+incremental query time; the initial plan is reported separately from updates.
 
 ## Sources and attribution
 

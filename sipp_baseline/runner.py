@@ -25,7 +25,8 @@ def ensure_built(binary=None):
         if not path.is_file():
             raise ValueError(f"binary does not exist: {path}")
         return path
-    if not BINARY.exists() or (ROOT / "src/planner.cpp").stat().st_mtime > BINARY.stat().st_mtime:
+    if not BINARY.exists() or any((ROOT / path).stat().st_mtime > BINARY.stat().st_mtime
+                                 for path in ('src/planner.cpp','src/model.hpp')):
         build()
     return BINARY
 
@@ -65,6 +66,7 @@ def benchmark(data, output, repeats=3, warmups=1, check_oracle=False, max_expans
                 "python": platform.python_version(), "binary": str(binary),
                 "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
                 "source_sha256": hashlib.sha256((ROOT / "src/planner.cpp").read_bytes()).hexdigest(),
+                "model_sha256": hashlib.sha256((ROOT / "src/model.hpp").read_bytes()).hexdigest(),
                 "scenario_sha256": hashlib.sha256(canonical.encode()).hexdigest(),
                 "compiler": subprocess.check_output(["g++", "--version"], text=True).splitlines()[0],
                 "build_flags": None if custom_binary else "-std=c++17 -O3 -DNDEBUG -Wall -Wextra -Wpedantic",

@@ -1,0 +1,1037 @@
+{
+  "config": {
+    "source_suite": "/home/renat/spbu-bachelor/sem7/heuristics/incremental_sipp_ip/baseline/runs/q-comparison",
+    "repeats": 3,
+    "warmups": 1,
+    "max_expansions": 2000000,
+    "timeout": 180
+  },
+  "complete": true,
+  "runs": [
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 711,
+        "baseline_us": 1828.59,
+        "incremental_us": 2955.11,
+        "speedup": 0.6187891482888961,
+        "baseline_expansions": 1614,
+        "incremental_expansions": 1614,
+        "baseline_projections": 3948,
+        "incremental_projections": 3898,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 4779,
+        "stored_projections": 3898
+      },
+      "updates": {
+        "baseline_total_us": 7749.72,
+        "incremental_total_us": 3256.276,
+        "baseline_expansions": 8070,
+        "incremental_expansions": 0,
+        "speedup": 2.3799333963091582
+      },
+      "map": "empty_64_64",
+      "q": 0,
+      "directory": "empty_64_64/q-0"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 711,
+        "baseline_us": 1767.87,
+        "incremental_us": 2497.57,
+        "speedup": 0.707836016608143,
+        "baseline_expansions": 1614,
+        "incremental_expansions": 1614,
+        "baseline_projections": 3948,
+        "incremental_projections": 3898,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 4779,
+        "stored_projections": 3898
+      },
+      "updates": {
+        "baseline_total_us": 7762.17,
+        "incremental_total_us": 3455.022,
+        "baseline_expansions": 8088,
+        "incremental_expansions": 63,
+        "speedup": 2.2466340301161614
+      },
+      "map": "empty_64_64",
+      "q": 0.1,
+      "directory": "empty_64_64/q-0_1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 711,
+        "baseline_us": 1820.43,
+        "incremental_us": 2674.59,
+        "speedup": 0.6806389016634325,
+        "baseline_expansions": 1614,
+        "incremental_expansions": 1614,
+        "baseline_projections": 3948,
+        "incremental_projections": 3898,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 4779,
+        "stored_projections": 3898
+      },
+      "updates": {
+        "baseline_total_us": 7974.25,
+        "incremental_total_us": 6524.142,
+        "baseline_expansions": 8168,
+        "incremental_expansions": 1737,
+        "speedup": 1.2222680009110778
+      },
+      "map": "empty_64_64",
+      "q": 0.25,
+      "directory": "empty_64_64/q-0_25"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 711,
+        "baseline_us": 1869.58,
+        "incremental_us": 2491.43,
+        "speedup": 0.7504043862360171,
+        "baseline_expansions": 1614,
+        "incremental_expansions": 1614,
+        "baseline_projections": 3948,
+        "incremental_projections": 3898,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 4779,
+        "stored_projections": 3898
+      },
+      "updates": {
+        "baseline_total_us": 8292.42,
+        "incremental_total_us": 10119.1,
+        "baseline_expansions": 8796,
+        "incremental_expansions": 3643,
+        "speedup": 0.8194819697403919
+      },
+      "map": "empty_64_64",
+      "q": 0.5,
+      "directory": "empty_64_64/q-0_5"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 711,
+        "baseline_us": 1785.73,
+        "incremental_us": 2719.05,
+        "speedup": 0.6567477611665838,
+        "baseline_expansions": 1614,
+        "incremental_expansions": 1614,
+        "baseline_projections": 3948,
+        "incremental_projections": 3898,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 4779,
+        "stored_projections": 3898
+      },
+      "updates": {
+        "baseline_total_us": 10656.67,
+        "incremental_total_us": 17011.43,
+        "baseline_expansions": 12571,
+        "incremental_expansions": 8587,
+        "speedup": 0.6264417512225604
+      },
+      "map": "empty_64_64",
+      "q": 1,
+      "directory": "empty_64_64/q-1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2031,
+        "baseline_us": 28473.7,
+        "incremental_us": 42669,
+        "speedup": 0.6673158499144578,
+        "baseline_expansions": 36572,
+        "incremental_expansions": 36572,
+        "baseline_projections": 88716,
+        "incremental_projections": 75236,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 101953,
+        "stored_projections": 75236
+      },
+      "updates": {
+        "baseline_total_us": 136137.9,
+        "incremental_total_us": 3273.51,
+        "baseline_expansions": 182860,
+        "incremental_expansions": 0,
+        "speedup": 41.58774526425763
+      },
+      "map": "room-64-64-16",
+      "q": 0,
+      "directory": "room-64-64-16/q-0"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2031,
+        "baseline_us": 28688.2,
+        "incremental_us": 47251,
+        "speedup": 0.6071448223318026,
+        "baseline_expansions": 36572,
+        "incremental_expansions": 36572,
+        "baseline_projections": 88716,
+        "incremental_projections": 75236,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 101953,
+        "stored_projections": 75236
+      },
+      "updates": {
+        "baseline_total_us": 127015.70000000001,
+        "incremental_total_us": 268498.6,
+        "baseline_expansions": 170134,
+        "incremental_expansions": 169199,
+        "speedup": 0.47305907740301073
+      },
+      "map": "room-64-64-16",
+      "q": 0.1,
+      "directory": "room-64-64-16/q-0_1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2031,
+        "baseline_us": 28889.6,
+        "incremental_us": 41388.5,
+        "speedup": 0.6980103168754606,
+        "baseline_expansions": 36572,
+        "incremental_expansions": 36572,
+        "baseline_projections": 88716,
+        "incremental_projections": 75236,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 101953,
+        "stored_projections": 75236
+      },
+      "updates": {
+        "baseline_total_us": 126659.7,
+        "incremental_total_us": 284802.3,
+        "baseline_expansions": 172543,
+        "incremental_expansions": 172269,
+        "speedup": 0.4447285011392113
+      },
+      "map": "room-64-64-16",
+      "q": 0.25,
+      "directory": "room-64-64-16/q-0_25"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2031,
+        "baseline_us": 27759.8,
+        "incremental_us": 40811.9,
+        "speedup": 0.68018886648257,
+        "baseline_expansions": 36572,
+        "incremental_expansions": 36572,
+        "baseline_projections": 88716,
+        "incremental_projections": 75236,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 101953,
+        "stored_projections": 75236
+      },
+      "updates": {
+        "baseline_total_us": 122241.4,
+        "incremental_total_us": 296581.6,
+        "baseline_expansions": 159314,
+        "incremental_expansions": 159145,
+        "speedup": 0.41216784857860367
+      },
+      "map": "room-64-64-16",
+      "q": 0.5,
+      "directory": "room-64-64-16/q-0_5"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2031,
+        "baseline_us": 29011.8,
+        "incremental_us": 40736.6,
+        "speedup": 0.7121802015877614,
+        "baseline_expansions": 36572,
+        "incremental_expansions": 36572,
+        "baseline_projections": 88716,
+        "incremental_projections": 75236,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 101953,
+        "stored_projections": 75236
+      },
+      "updates": {
+        "baseline_total_us": 93247.4,
+        "incremental_total_us": 233240.6,
+        "baseline_expansions": 110557,
+        "incremental_expansions": 110534,
+        "speedup": 0.3997906024937339
+      },
+      "map": "room-64-64-16",
+      "q": 1,
+      "directory": "room-64-64-16/q-1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 1405,
+        "baseline_us": 26351.1,
+        "incremental_us": 35933.5,
+        "speedup": 0.7333296227754045,
+        "baseline_expansions": 25796,
+        "incremental_expansions": 25795,
+        "baseline_projections": 65404,
+        "incremental_projections": 60746,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 75971,
+        "stored_projections": 60746
+      },
+      "updates": {
+        "baseline_total_us": 118303.2,
+        "incremental_total_us": 14127.41,
+        "baseline_expansions": 128980,
+        "incremental_expansions": 0,
+        "speedup": 8.374019016932332
+      },
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0,
+      "directory": "warehouse-10-20-10-2-2/q-0"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 1405,
+        "baseline_us": 25621.9,
+        "incremental_us": 34018,
+        "speedup": 0.75318654829796,
+        "baseline_expansions": 25796,
+        "incremental_expansions": 25795,
+        "baseline_projections": 65404,
+        "incremental_projections": 60746,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 75971,
+        "stored_projections": 60746
+      },
+      "updates": {
+        "baseline_total_us": 96227.2,
+        "incremental_total_us": 184198.2,
+        "baseline_expansions": 104569,
+        "incremental_expansions": 75125,
+        "speedup": 0.5224111853427449
+      },
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.1,
+      "directory": "warehouse-10-20-10-2-2/q-0_1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 1405,
+        "baseline_us": 28199.4,
+        "incremental_us": 38791.2,
+        "speedup": 0.7269535358534926,
+        "baseline_expansions": 25796,
+        "incremental_expansions": 25795,
+        "baseline_projections": 65404,
+        "incremental_projections": 60746,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 75971,
+        "stored_projections": 60746
+      },
+      "updates": {
+        "baseline_total_us": 106162.6,
+        "incremental_total_us": 236899.5,
+        "baseline_expansions": 110174,
+        "incremental_expansions": 103109,
+        "speedup": 0.4481334912061866
+      },
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.25,
+      "directory": "warehouse-10-20-10-2-2/q-0_25"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 1405,
+        "baseline_us": 25949.3,
+        "incremental_us": 36491.9,
+        "speedup": 0.7110975312329585,
+        "baseline_expansions": 25796,
+        "incremental_expansions": 25795,
+        "baseline_projections": 65404,
+        "incremental_projections": 60746,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 75971,
+        "stored_projections": 60746
+      },
+      "updates": {
+        "baseline_total_us": 123518.7,
+        "incremental_total_us": 309221.8,
+        "baseline_expansions": 126592,
+        "incremental_expansions": 123994,
+        "speedup": 0.39945016813174233
+      },
+      "map": "warehouse-10-20-10-2-2",
+      "q": 0.5,
+      "directory": "warehouse-10-20-10-2-2/q-0_5"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 1405,
+        "baseline_us": 25804.5,
+        "incremental_us": 40449.6,
+        "speedup": 0.6379420315652071,
+        "baseline_expansions": 25796,
+        "incremental_expansions": 25795,
+        "baseline_projections": 65404,
+        "incremental_projections": 60746,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 75971,
+        "stored_projections": 60746
+      },
+      "updates": {
+        "baseline_total_us": 111423.8,
+        "incremental_total_us": 291086.0,
+        "baseline_expansions": 107331,
+        "incremental_expansions": 107272,
+        "speedup": 0.38278653044117544
+      },
+      "map": "warehouse-10-20-10-2-2",
+      "q": 1,
+      "directory": "warehouse-10-20-10-2-2/q-1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2226,
+        "baseline_us": 73066.3,
+        "incremental_us": 115419,
+        "speedup": 0.6330526169868046,
+        "baseline_expansions": 79531,
+        "incremental_expansions": 79531,
+        "baseline_projections": 196525,
+        "incremental_projections": 165814,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 210036,
+        "stored_projections": 165814
+      },
+      "updates": {
+        "baseline_total_us": 380318.29999999993,
+        "incremental_total_us": 18379.84,
+        "baseline_expansions": 397655,
+        "incremental_expansions": 0,
+        "speedup": 20.692144218883293
+      },
+      "map": "random128",
+      "q": 0,
+      "directory": "random128/q-0"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2226,
+        "baseline_us": 78063.2,
+        "incremental_us": 109341,
+        "speedup": 0.7139426198772647,
+        "baseline_expansions": 79531,
+        "incremental_expansions": 79531,
+        "baseline_projections": 196525,
+        "incremental_projections": 165814,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 210036,
+        "stored_projections": 165814
+      },
+      "updates": {
+        "baseline_total_us": 339664.0,
+        "incremental_total_us": 780457,
+        "baseline_expansions": 368685,
+        "incremental_expansions": 325853,
+        "speedup": 0.4352116772608869
+      },
+      "map": "random128",
+      "q": 0.1,
+      "directory": "random128/q-0_1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2226,
+        "baseline_us": 77336.6,
+        "incremental_us": 112103,
+        "speedup": 0.6898709222768348,
+        "baseline_expansions": 79531,
+        "incremental_expansions": 79531,
+        "baseline_projections": 196525,
+        "incremental_projections": 165814,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 210036,
+        "stored_projections": 165814
+      },
+      "updates": {
+        "baseline_total_us": 446218.8,
+        "incremental_total_us": 1122593,
+        "baseline_expansions": 468527,
+        "incremental_expansions": 455561,
+        "speedup": 0.3974893839530444
+      },
+      "map": "random128",
+      "q": 0.25,
+      "directory": "random128/q-0_25"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2226,
+        "baseline_us": 76463.8,
+        "incremental_us": 112939,
+        "speedup": 0.6770362762199064,
+        "baseline_expansions": 79531,
+        "incremental_expansions": 79531,
+        "baseline_projections": 196525,
+        "incremental_projections": 165814,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 210036,
+        "stored_projections": 165814
+      },
+      "updates": {
+        "baseline_total_us": 471822.6,
+        "incremental_total_us": 1182903,
+        "baseline_expansions": 470629,
+        "incremental_expansions": 469467,
+        "speedup": 0.3988683772042171
+      },
+      "map": "random128",
+      "q": 0.5,
+      "directory": "random128/q-0_5"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2226,
+        "baseline_us": 72553.7,
+        "incremental_us": 108853,
+        "speedup": 0.666529172370077,
+        "baseline_expansions": 79531,
+        "incremental_expansions": 79531,
+        "baseline_projections": 196525,
+        "incremental_projections": 165814,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 210036,
+        "stored_projections": 165814
+      },
+      "updates": {
+        "baseline_total_us": 605678,
+        "incremental_total_us": 1580612,
+        "baseline_expansions": 587283,
+        "incremental_expansions": 587252,
+        "speedup": 0.38319208002976063
+      },
+      "map": "random128",
+      "q": 1,
+      "directory": "random128/q-1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2756,
+        "baseline_us": 237114,
+        "incremental_us": 361756,
+        "speedup": 0.6554528466701313,
+        "baseline_expansions": 178734,
+        "incremental_expansions": 178734,
+        "baseline_projections": 439277,
+        "incremental_projections": 427392,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 654786,
+        "stored_projections": 427392
+      },
+      "updates": {
+        "baseline_total_us": 1192617,
+        "incremental_total_us": 101421.0,
+        "baseline_expansions": 893670,
+        "incremental_expansions": 0,
+        "speedup": 11.759073564646375
+      },
+      "map": "Sydney_2_256",
+      "q": 0,
+      "directory": "Sydney_2_256/q-0"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2756,
+        "baseline_us": 244764,
+        "incremental_us": 353015,
+        "speedup": 0.6933529736696741,
+        "baseline_expansions": 178734,
+        "incremental_expansions": 178734,
+        "baseline_projections": 439277,
+        "incremental_projections": 427392,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 654786,
+        "stored_projections": 427392
+      },
+      "updates": {
+        "baseline_total_us": 1501631,
+        "incremental_total_us": 3802197,
+        "baseline_expansions": 1102360,
+        "incremental_expansions": 1071715,
+        "speedup": 0.3949377162729864
+      },
+      "map": "Sydney_2_256",
+      "q": 0.1,
+      "directory": "Sydney_2_256/q-0_1"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2756,
+        "baseline_us": 247339,
+        "incremental_us": 360147,
+        "speedup": 0.686772345736602,
+        "baseline_expansions": 178734,
+        "incremental_expansions": 178734,
+        "baseline_projections": 439277,
+        "incremental_projections": 427392,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 654786,
+        "stored_projections": 427392
+      },
+      "updates": {
+        "baseline_total_us": 2109412,
+        "incremental_total_us": 5248026.0,
+        "baseline_expansions": 1428298,
+        "incremental_expansions": 1424962,
+        "speedup": 0.4019438928084579
+      },
+      "map": "Sydney_2_256",
+      "q": 0.25,
+      "directory": "Sydney_2_256/q-0_25"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2756,
+        "baseline_us": 244967,
+        "incremental_us": 364525,
+        "speedup": 0.6720170084356354,
+        "baseline_expansions": 178734,
+        "incremental_expansions": 178734,
+        "baseline_projections": 439277,
+        "incremental_projections": 427392,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 654786,
+        "stored_projections": 427392
+      },
+      "updates": {
+        "baseline_total_us": 2255909,
+        "incremental_total_us": 5664274.0,
+        "baseline_expansions": 1479163,
+        "incremental_expansions": 1479071,
+        "speedup": 0.39826975178107554
+      },
+      "map": "Sydney_2_256",
+      "q": 0.5,
+      "directory": "Sydney_2_256/q-0_5"
+    },
+    {
+      "queries": 6,
+      "verdicts": {
+        "matched": 6
+      },
+      "initial": {
+        "forecast_id": "p0",
+        "phase": "initial",
+        "verdict": "matched",
+        "baseline_status": "solved",
+        "incremental_status": "solved",
+        "cost_ticks": 2756,
+        "baseline_us": 241530,
+        "incremental_us": 353024,
+        "speedup": 0.6841744470630892,
+        "baseline_expansions": 178734,
+        "incremental_expansions": 178734,
+        "baseline_projections": 439277,
+        "incremental_projections": 427392,
+        "changed_cells": 0,
+        "suspect_projections": 0,
+        "changed_projections": 0,
+        "reused_projections": 0,
+        "retired_labels": 0,
+        "retired_owners": 0,
+        "reactivated_intervals": 0,
+        "compactions": 0,
+        "stored_labels": 654786,
+        "stored_projections": 427392
+      },
+      "updates": {
+        "baseline_total_us": 2261810,
+        "incremental_total_us": 5839760.0,
+        "baseline_expansions": 1428966,
+        "incremental_expansions": 1428946,
+        "speedup": 0.38731214981437595
+      },
+      "map": "Sydney_2_256",
+      "q": 1,
+      "directory": "Sydney_2_256/q-1"
+    }
+  ]
+}

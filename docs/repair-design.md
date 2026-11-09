@@ -1,9 +1,10 @@
 # Proposed repair rules for fixed-start Incremental SIPP-IP
 
-Status: design for the first implementation, not an implemented planner or a
-completed correctness proof. The current measured planner remains the full-replan
-baseline. This design deliberately repairs whole projection results when their
-witnesses change; finer interval surgery is a later optimization.
+Status: implemented as a first prototype in [src/incremental.cpp](../src/incremental.cpp).
+See [implementation and measured results](repair-results.md). The correctness
+arguments below remain a proof plan, supported by differential tests rather than
+a completed formal proof. This design deliberately repairs whole projection
+results when their witnesses change; finer interval surgery is a later optimization.
 
 ## 1. Decision and scope
 
