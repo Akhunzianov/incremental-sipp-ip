@@ -20,6 +20,9 @@ struct Output {
 struct RepairStats {
     Stats search;
     long long changed_cells=0,suspect=0,changed=0,reused=0,retired_labels=0,retired_owners=0,reactivated=0,created=0,compactions=0;
+    long long before_labels=0,before_owners=0,before_records=0,before_states=0;
+    long long retired_records=0,retired_states=0,direct_seeds=0,expanded_states=0;
+    bool root_replaced=false;
     bool unchanged=false,reset=false;
 };
 struct Incremental {
@@ -39,6 +42,8 @@ struct Incremental {
     std::string last_status;
     RepairStats stats;
     double diff_us=0,repair_us=0,compaction_us=0;
+    double recheck_us=0,retirement_us=0,coverage_us=0,installation_us=0;
+    long long live_labels=0,live_owners=0,live_records=0,covered_states=0;
 
     static int storage_id(size_t size){
         if(size>=static_cast<size_t>(std::numeric_limits<int>::max()))throw std::length_error("repair storage index limit exceeded");
@@ -90,7 +95,7 @@ struct Incremental {
     int add_label(Node n,int producer){
         int id=storage_id(labels.size());
         Label l;l.n=n;l.producer=producer;labels.push_back(std::move(l));
-        candidates[key(n)].push_back(id);++stats.created;
+        candidates[key(n)].push_back(id);++stats.created;++live_labels;
         schedule(id);return id;
     }
     void make_root(){
@@ -163,10 +168,12 @@ struct Incremental {
         expansions.push_back({label,lo,hi});labels[label].owners.push_back(owner);owners[key(n)].push_back(owner);
         auto& c=closed[key(n)];c.push_back({lo,hi});c=normalize(c);
         ++stats.search.expansions;
+        ++live_owners;covered_states+=hi-lo+1;stats.expanded_states+=hi-lo+1;
         // Register the full footprint before any dynamic-obstacle early return.
         for(int action=0;action<static_cast<int>(primitives[n.o][n.v].size());++action){
             if(!static_valid(owner,action))continue;
             int id=storage_id(records.size());records.push_back({owner,action,{}});
+            ++live_records;
             expansions[owner].records[action]=id;register_watch(id);
             install(id,project(owner,action));
         }
@@ -175,13 +182,15 @@ struct Incremental {
         std::vector<int> queue=seeds;
         for(size_t at=0;at<queue.size();++at){
             int id=queue[at];auto& l=labels[id];if(!l.live)continue;
-            l.live=false;++stats.retired_labels;
+            l.live=false;++stats.retired_labels;--live_labels;
             for(int owner:l.owners){
                 auto& e=expansions[owner];if(!e.live)continue;
-                e.live=false;++stats.retired_owners;int k=key(l.n);
+                e.live=false;++stats.retired_owners;--live_owners;
+                covered_states-=e.hi-e.lo+1;stats.retired_states+=e.hi-e.lo+1;int k=key(l.n);
                 if(!touched[k]){touched[k]=true;affected.push_back(k);}
                 for(int rid:e.records)if(rid>=0&&records[rid].live){
                     records[rid].live=false;
+                    --live_records;++stats.retired_records;
                     const auto& outputs=records[rid].outputs;queue.insert(queue.end(),outputs.begin(),outputs.end());
                 }
             }
@@ -214,6 +223,9 @@ struct Incremental {
     }
     bool update(Input&& next){
         stats={};diff_us=repair_us=compaction_us=0;
+        recheck_us=retirement_us=coverage_us=installation_us=0;
+        stats.before_labels=live_labels;stats.before_owners=live_owners;
+        stats.before_records=live_records;stats.before_states=covered_states;
         if(++epoch==0){
             // Old stamps (including the zero used after compaction) must not
             // suppress the first affected projection after unsigned rollover.
@@ -239,9 +251,13 @@ struct Incremental {
         std::vector<int> affected;std::vector<bool> touched(closed.size(),false);
         int root_end=safe_end(env.sr,env.sc,env.start),root_hi=env.sv==0?root_end:env.start;
         bool replace_root=(root<0)?root_end>=env.start:root_end<env.start||labels[root].n.hi!=root_hi;
-        if(replace_root&&root>=0){retire({root},affected,touched);root=-1;}
+        stats.root_replaced=replace_root;
+        auto phase=Clock::now();
+        if(replace_root&&root>=0){++stats.direct_seeds;retire({root},affected,touched);root=-1;}
+        retirement_us+=std::chrono::duration<double,std::micro>(Clock::now()-phase).count();
         std::vector<std::pair<int,std::vector<Output>>> replacements;
         std::vector<int> seeds;
+        phase=Clock::now();
         for(int id:suspect){
             if(!records[id].live)continue;
             auto result=project(records[id].owner,records[id].action);
@@ -249,15 +265,22 @@ struct Incremental {
             ++stats.changed;const auto& old=records[id].outputs;seeds.insert(seeds.end(),old.begin(),old.end());
             replacements.emplace_back(id,std::move(result));
         }
+        recheck_us=std::chrono::duration<double,std::micro>(Clock::now()-phase).count();
+        stats.direct_seeds+=seeds.size();phase=Clock::now();
         retire(seeds,affected,touched);
+        retirement_us+=std::chrono::duration<double,std::micro>(Clock::now()-phase).count();
+        phase=Clock::now();
         scan_goals();
         for(int k:affected){
             Intervals current;for(int id:owners[k])if(expansions[id].live)current.push_back({expansions[id].lo,expansions[id].hi});current=normalize(current);
             bool lost=!subtract(closed[k],current).empty();closed[k]=std::move(current);
             if(lost)for(int id:candidates[k])if(labels[id].live)schedule(id,true);
         }
+        coverage_us=std::chrono::duration<double,std::micro>(Clock::now()-phase).count();
+        phase=Clock::now();
         for(auto& replacement:replacements)if(records[replacement.first].live&&expansions[records[replacement.first].owner].live)install(replacement.first,replacement.second);
         if(replace_root)make_root();
+        installation_us=std::chrono::duration<double,std::micro>(Clock::now()-phase).count();
         // Reclaim dead provenance, rebuilding the complete frontier with fresh handles.
         long long dead=0;for(const auto& l:labels)dead+=!l.live;
         if(dead>0&&dead*3>=static_cast<long long>(labels.size()))compact();
@@ -300,6 +323,11 @@ struct Incremental {
     // This is an invariant audit, not an independent optimality oracle.
     void verify_invariants()const{
         auto require=[](bool ok,const char* message){if(!ok)throw std::logic_error(message);};
+        long long actual_labels=0,actual_owners=0,actual_records=0,actual_states=0;
+        for(const auto& l:labels)actual_labels+=l.live;
+        for(const auto& e:expansions)if(e.live){++actual_owners;actual_states+=e.hi-e.lo+1;}
+        for(const auto& r:records)actual_records+=r.live;
+        require(actual_labels==live_labels&&actual_owners==live_owners&&actual_records==live_records&&actual_states==covered_states,"diagnostic live counters");
         for(const auto& by_velocity:primitives)for(const auto& ps:by_velocity)for(const auto& p:ps){
             require(p.duration>0&&p.duration>=5*(std::abs(p.dr)+std::abs(p.dc)),"heuristic primitive bound");
             bool endpoint=false;
@@ -434,6 +462,8 @@ int main(){
         if(answer.second<0)std::cout<<"null";else std::cout<<p.labels[answer.second].n.lo;
         std::cout<<",\"setup_us\":"<<micros(begin,parsed)<<",\"diff_us\":"<<p.diff_us<<",\"repair_us\":"<<p.repair_us
                  <<",\"maintenance_us\":"<<micros(parsed,repaired)<<",\"compaction_us\":"<<p.compaction_us
+                 <<",\"recheck_us\":"<<p.recheck_us<<",\"retirement_us\":"<<p.retirement_us
+                 <<",\"coverage_restore_us\":"<<p.coverage_us<<",\"installation_us\":"<<p.installation_us
                  <<",\"search_us\":"<<micros(repaired,searched)<<",\"reconstruction_us\":"<<micros(searched,finished)
                  <<",\"teardown_us\":0,\"total_us\":"<<micros(begin,finished)
                  <<",\"expansions\":"<<s.search.expansions<<",\"projections\":"<<s.search.projections<<",\"generated\":"<<s.search.generated
@@ -441,6 +471,13 @@ int main(){
                  <<",\"changed_cells\":"<<s.changed_cells<<",\"suspect_projections\":"<<s.suspect
                  <<",\"changed_projections\":"<<s.changed<<",\"reused_projections\":"<<s.reused
                  <<",\"retired_labels\":"<<s.retired_labels<<",\"retired_owners\":"<<s.retired_owners
+                 <<",\"before_live_labels\":"<<s.before_labels<<",\"before_live_owners\":"<<s.before_owners
+                 <<",\"before_live_projections\":"<<s.before_records<<",\"before_covered_states\":"<<s.before_states
+                 <<",\"retired_projections\":"<<s.retired_records<<",\"retired_states\":"<<s.retired_states
+                 <<",\"expanded_states\":"<<s.expanded_states
+                 <<",\"direct_invalidated_labels\":"<<s.direct_seeds<<",\"root_replaced\":"<<(s.root_replaced?"true":"false")
+                 <<",\"live_labels\":"<<p.live_labels<<",\"live_owners\":"<<p.live_owners
+                 <<",\"live_projections\":"<<p.live_records<<",\"covered_states\":"<<p.covered_states
                  <<",\"reactivated_intervals\":"<<s.reactivated<<",\"created_labels\":"<<s.created
                  <<",\"compactions\":"<<s.compactions<<",\"stored_labels\":"<<p.labels.size()<<",\"stored_projections\":"<<p.records.size()
                  <<",\"unchanged_forecast\":"<<(s.unchanged?"true":"false")<<",\"reset\":"<<(s.reset?"true":"false")<<",\"steps\":[";

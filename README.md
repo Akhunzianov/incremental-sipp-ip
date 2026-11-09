@@ -76,6 +76,20 @@ stamp-rollover bug found and fixed during the audit. `make test` includes an
 expensive verification build that checks the proof invariants; release builds
 omit these audits. The proof is mathematical, not machine-checked verification.
 
+## Diagnose repair and test isolated changes
+
+```sh
+python3 -m sipp_baseline controlled-repair --output runs/controlled-repair-new \
+  --seeds 7 11 19 --repeats 3 --warmups 1
+```
+
+This tests one obstacle's short pause, one-edge speed increase/decrease and nearby
+waypoint detour. Four variants share an upstream initial world and future boundary
+for each map/seed; other obstacles stay fixed. Normal repair comparisons now
+report live-cache survival, direct versus cascading invalidation, exact change
+size and repair-phase timings. See [the diagnostic definitions and protocol](docs/diagnostics.md)
+and [the measured findings and regression target](docs/diagnostic-findings.md).
+
 ## Generate and measure forecast updates
 
 ```sh
