@@ -38,3 +38,17 @@ class SuffixTests(unittest.TestCase):
                 if strategy=='certified_suffix':
                     self.assertEqual(result['steps'][0]['start'],10)
                     self.assertEqual(result['expansions'],0)
+
+    def test_fresh_miss_replaces_certificate_for_next_decision(self):
+        data = dict(grid=['.'*13], start=[0,0,0,0], goal=[0,12,0], horizon=200)
+        sequence = [(data, dict(reservations=[[0,5,40,80]])),
+                    (dict(data,start_tick=10),dict(reservations=[])),
+                    (dict(data,start=[0,4,0,1],start_tick=50),dict(reservations=[[0,12,180,185]]))]
+        payload = ''.join(protocol(q,f,100000) for q,f in sequence)
+        run = subprocess.run([ROOT/'build/sipp_ip_adaptive','0','5','--suffix-fresh'],
+                             input=payload,text=True,capture_output=True,check=True)
+        rows = [json.loads(s) for s in run.stdout.splitlines()]
+        self.assertEqual([r['strategy'] for r in rows],['full_replan','full_replan','certified_suffix'])
+        for (q,f),r in zip(sequence,rows):
+            validate(q,f,r)
+            self.assertEqual((r['status'],r['cost_ticks']),oracle(q,f))

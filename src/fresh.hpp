@@ -1,5 +1,6 @@
 #pragma once
 #include "model.hpp"
+#include "profile.hpp"
 struct Planner {
     int h,w,horizon,sr,sc,so,sv,start,gr,gc,gv;
     long long limit;
@@ -22,13 +23,15 @@ struct Planner {
         return end;
     }
     void push(Node n) {
+        PROFILE_PHASE(witness);
         if(n.lo>n.hi) return;
         int id=static_cast<int>(nodes.size()); nodes.push_back(n);
-        open.emplace(n.lo+5*distance(n.r,n.c),distance(n.r,n.c),-n.hi,id);
+        { PROFILE_PHASE(queue); open.emplace(n.lo+5*distance(n.r,n.c),distance(n.r,n.c),-n.hi,id); }
         ++stats.generated;
         stats.peak_open=std::max(stats.peak_open,static_cast<long long>(open.size()));
     }
     void project(const Node& n,int parent,int action) {
+        PROFILE_PHASE(projection);
         ++stats.projections;
         const auto& p=primitives[n.o][n.v][action];
         Intervals departures{{n.lo,std::min(n.hi,horizon-p.duration)}};
@@ -52,7 +55,7 @@ struct Planner {
         if(end<start || grid[sr][sc]=='#') return {"invalid_start",-1};
         push({sr,sc,so,sv,start,sv==0?end:start,-1,-1,0,0});
         while(!open.empty()) {
-            auto entry=open.top(); open.pop(); ++stats.pops;
+            Entry entry; { PROFILE_PHASE(queue); entry=open.top(); open.pop(); } ++stats.pops;
             int id=std::get<3>(entry); Node n=nodes[id];
             auto remaining=subtract({{n.lo,n.hi}},closed[key(n)]);
             if(remaining.empty()) continue;
@@ -87,13 +90,16 @@ struct Planner {
     }
 };
 inline double elapsed(Clock::time_point a,Clock::time_point b) { return std::chrono::duration<double,std::micro>(b-a).count(); }
-inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin, bool adaptive=false,double decision_us=0) {
+struct FreshSolution { int cost=-1; std::vector<Step> steps; };
+inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin, bool adaptive=false,double decision_us=0, FreshSolution* saved=nullptr) {
     auto& p=*planner;
     auto ready=Clock::now(); auto [status,goal]=p.search(); auto searched=Clock::now();
     auto steps=goal<0?std::vector<Step>{}:p.reconstruct(goal); auto finished=Clock::now();
     int cost=goal<0?-1:p.nodes[goal].lo; auto stats=p.stats;
-    planner.reset(); auto destroyed=Clock::now();
+    if(saved) { saved->cost=cost; saved->steps=steps; }
+    { PROFILE_PHASE(release); planner.reset(); } auto destroyed=Clock::now();
     std::cout<<"{";
+    PROFILE_EMIT();
     if(adaptive) std::cout<<"\"strategy\":\"full_replan\",\"decision_us\":"<<decision_us<<",";
     std::cout<<"\"status\":\""<<status<<"\",\"cost_ticks\":";
     if(goal<0) std::cout<<"null"; else std::cout<<cost;

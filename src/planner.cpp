@@ -3,6 +3,7 @@ int main() {
     std::ios::sync_with_stdio(false);
     int h,w;
     while(std::cin>>h>>w) {
+        PROFILE_RESET();
         auto begin=Clock::now(); auto planner=std::make_unique<Planner>(); auto& p=*planner; p.h=h; p.w=w;
         if(!(std::cin>>p.horizon>>p.sr>>p.sc>>p.so>>p.sv>>p.start>>p.gr>>p.gc>>p.gv>>p.limit)) return 2;
         if(h<=0 || w<=0 || h>1024 || w>1024 || p.horizon<0 || p.horizon>10000000 ||

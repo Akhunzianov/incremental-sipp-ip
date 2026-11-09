@@ -372,3 +372,8 @@ It rotates execution order, uses one warm-up and three measured trials, validate
 paths and checks status and cost against full replanning. Engineered cases also
 use the independent oracle. Records contain the individual native timings and
 the strategy chosen for each invoked query. Update totals exclude initial search.
+
+For moving-start runs, `python3 -m sipp_baseline.moving_replay` accepts
+`--suffix-fresh` to use a certified suffix when possible and otherwise run a
+fresh SIPP-IP search. See the [four-policy moving-start comparison and phase
+profile](docs/moving-fresh-search.md) for the protocol and measurements.

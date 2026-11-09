@@ -1,5 +1,6 @@
 // Fixed-start witness-based SIPP-IP repair. See docs/repair-design.md.
 #include "model.hpp"
+#include "profile.hpp"
 #ifdef SIPP_ADAPTIVE
 #include "fresh.hpp"
 #endif
@@ -62,6 +63,7 @@ struct Incremental {
     }
 
     bool cached_projection(int owner,int action,std::vector<Output>& result) {
+        PROFILE_PHASE(lookup);
         const auto& target=expansions[owner];
         const auto& n=labels[target.label].n;
         const auto& motion=primitives[n.o][n.v][action];
@@ -127,6 +129,7 @@ struct Incremental {
         for(int o=0;o<4;++o)for(int id:candidates[(cell(env.gr,env.gc)*4+o)*2+env.gv])consider_goal(id);
     }
     void push_task(int id,int lo,int hi){
+        PROFILE_PHASE(queue);
         const auto& l=labels[id];
         open.emplace(lo+5*distance(l.n.r,l.n.c),distance(l.n.r,l.n.c),-hi,id,lo,hi,l.generation);
         ++stats.search.generated;
@@ -140,6 +143,7 @@ struct Incremental {
         for(auto [a,b]:pieces){push_task(id,a,b);if(reactivation)++stats.reactivated;}
     }
     int add_label(Node n,int producer){
+        PROFILE_PHASE(witness);
         int id=storage_id(labels.size());
         Label l;l.n=n;l.producer=producer;labels.push_back(std::move(l));
         candidates[key(n)].push_back(id);++stats.created;++live_labels;
@@ -167,6 +171,7 @@ struct Incremental {
         }
     }
     std::vector<Output> project_result(int owner,int action)const{
+        PROFILE_PHASE(projection);
         // These inputs are copied: projection installation may grow the stores.
         const auto e=expansions[owner];const auto n=labels[e.label].n;
         const auto& p=primitives[n.o][n.v][action];
@@ -206,6 +211,7 @@ struct Incremental {
         return true;
     }
     void install(int id,const std::vector<Output>& outputs){
+        PROFILE_PHASE(witness);
         const int owner=records[id].owner,action=records[id].action;
         const int parent=expansions[owner].label;const auto n=labels[parent].n;
         const auto& p=primitives[n.o][n.v][action];
@@ -216,6 +222,7 @@ struct Incremental {
         }
     }
     void expand(int label,int lo,int hi){
+        PROFILE_PHASE(ownership);
         const auto n=labels[label].n;
         int owner=storage_id(expansions.size());
         expansions.push_back({label,lo,hi});labels[label].owners.push_back(owner);owners[key(n)].push_back(owner);
@@ -343,7 +350,7 @@ struct Incremental {
     std::pair<std::string,int> search(){
         if(root<0){completed=true;last_status="invalid_start";return {last_status,-1};}
         while(!open.empty()){
-            const auto entry=open.top();open.pop();++stats.search.pops;
+            Entry entry; { PROFILE_PHASE(queue); entry=open.top();open.pop(); }++stats.search.pops;
             int id=std::get<3>(entry),lo=std::get<4>(entry),hi=std::get<5>(entry);
             if(!labels[id].live||labels[id].generation!=std::get<6>(entry))continue;
             const auto n=labels[id].n;
@@ -515,9 +522,10 @@ bool opens_earlier_route(const Input& old,const Input& next,int first,int arriva
     return false;
 }
 
-bool certified_suffix(const Incremental& cache,const Input& next,std::vector<Step>& suffix) {
-    const auto& old=cache.env;
-    if(!cache.completed || cache.incumbent<0 || next.start<=old.start || next.start>cache.upper ||
+template<class Path>
+bool certified_suffix(const Input& old,int arrival,const Actions& motions,Path path,
+                      const Input& next,std::vector<Step>& suffix) {
+    if(arrival<0 || next.start<=old.start || next.start>arrival ||
        std::tie(old.horizon,old.gr,old.gc,old.gv,old.grid)!=
        std::tie(next.horizon,next.gr,next.gc,next.gv,next.grid)) return false;
     auto free=[&](int r,int c,int lo,int hi) {
@@ -528,11 +536,11 @@ bool certified_suffix(const Incremental& cache,const Input& next,std::vector<Ste
         return true;
     };
     if(!free(next.sr,next.sc,next.start,next.start)) return false;
-    if(next.start==cache.upper)
+    if(next.start==arrival)
         return next.sr==next.gr && next.sc==next.gc && next.sv==next.gv;
-    if(opens_earlier_route(old,next,next.start,cache.upper)) return false;
+    if(opens_earlier_route(old,next,next.start,arrival)) return false;
 
-    for(auto step:cache.reconstruct(cache.incumbent)) {
+    for(auto step:path()) {
         if(step.end<=next.start) continue;
         if(suffix.empty()) {
             if(std::tie(step.r,step.c,step.o,step.v)!=std::tie(next.sr,next.sc,next.so,next.sv)) return false;
@@ -542,7 +550,7 @@ bool certified_suffix(const Incremental& cache,const Input& next,std::vector<Ste
         if(step.action=="wait") {
             if(!free(step.r,step.c,step.begin,step.end)) return false;
         } else {
-            const auto& actions=cache.primitives[step.o][step.v];
+            const auto& actions=motions[step.o][step.v];
             auto action=std::find_if(actions.begin(),actions.end(),[&](const Primitive& p){return p.name==step.action;});
             if(action==actions.end()) return false;
             for(const auto& touch:action->touches)
@@ -564,14 +572,14 @@ bool broad_change(const Input& cached,const Input& next,int minimum,int percent)
     }
     return changed>0 && changed>=static_cast<size_t>(minimum) && changed*100>=free_cells*percent;
 }
-void solve_fallback(Input&& input,Clock::time_point begin,double decision_us) {
+void solve_fallback(Input&& input,Clock::time_point begin,double decision_us,FreshSolution* saved=nullptr) {
     auto p=std::make_unique<Planner>();
     std::tie(p->h,p->w,p->horizon,p->sr,p->sc,p->so,p->sv,p->start,p->gr,p->gc,p->gv,p->limit)=
         std::tie(input.h,input.w,input.horizon,input.sr,input.sc,input.so,input.sv,input.start,input.gr,input.gc,input.gv,input.limit);
     p->grid=std::move(input.grid);
     p->blocked=std::move(input.blocked);
     p->closed.resize(p->h*p->w*8);
-    run_fresh(std::move(p),begin,true,decision_us);
+    run_fresh(std::move(p),begin,true,decision_us,saved);
 }
 #endif
 #ifdef SIPP_ADAPTIVE
@@ -585,20 +593,35 @@ int main(int argc,char** argv){
         return result.ec==std::errc{} && result.ptr==end && value>=0;
     };
     bool transfer=argc==4 && std::string_view(argv[3])=="--projection-reuse";
-    if(transfer) --argc;
+    bool suffix_fresh=argc==4 && std::string_view(argv[3])=="--suffix-fresh";
+    if(transfer || suffix_fresh) --argc;
+    Input saved_forecast{};
+    FreshSolution saved;
+    const Actions motions=actions();
     if(argc!=1 && (argc!=3 || !parse(argv[1],minimum) || !parse(argv[2],percent) || percent>100)) return 2;
 #else
 int main(){
 #endif
     std::ios::sync_with_stdio(false);std::unique_ptr<Incremental> planner;int h,w;
     while(std::cin>>h>>w){
+        PROFILE_RESET();
         auto begin=Clock::now();Input input;if(!read_input(input,h,w))return 2;auto parsed=Clock::now();
 #ifdef SIPP_ADAPTIVE
         std::vector<Step> suffix;
-        if(planner && certified_suffix(*planner,input,suffix)) {
+        bool certified=false;
+        int arrival=-1;
+        if(suffix_fresh && saved.cost>=0) {
+            arrival=saved.cost;
+            certified=certified_suffix(saved_forecast,arrival,motions,[&]() -> const auto& {return saved.steps;},input,suffix);
+        } else if(planner && planner->completed && planner->incumbent>=0) {
+            arrival=planner->upper;
+            certified=certified_suffix(planner->env,arrival,planner->primitives,
+                [&](){return planner->reconstruct(planner->incumbent);},input,suffix);
+        }
+        if(certified) {
             auto finished=Clock::now();
             std::cout<<"{\"strategy\":\"certified_suffix\",\"status\":\"solved\",\"reset\":false,"
-                     <<"\"cost_ticks\":"<<planner->upper<<",\"expansions\":0,\"projections\":0,\"generated\":0,"
+                     <<"\"cost_ticks\":"<<arrival<<",\"expansions\":0,\"projections\":0,\"generated\":0,"
                      <<"\"queue_pops\":0,\"peak_open\":0,\"setup_us\":"<<micros(begin,parsed)
                      <<",\"decision_us\":"<<micros(parsed,finished)<<",\"search_us\":0,\"total_us\":"<<micros(begin,finished)
                      <<",\"steps\":[";
@@ -609,6 +632,12 @@ int main(){
                 print_step(step);
             }
             std::cout<<"]}\n"<<std::flush;
+            continue;
+        }
+        if(suffix_fresh) {
+            double decision_us=micros(parsed,Clock::now());
+            saved_forecast=input;
+            solve_fallback(std::move(input),begin,decision_us,&saved);
             continue;
         }
         if(planner) planner->projection_hits=planner->empty_hits=planner->clipped_hits=0;
@@ -626,7 +655,8 @@ int main(){
 #endif
         bool reuse=false;
         if(!planner || !planner->same_query(input)) {
-            planner=std::make_unique<Incremental>(std::move(input));
+            auto replacement=std::make_unique<Incremental>(std::move(input));
+            { PROFILE_PHASE(release); planner=std::move(replacement); }
 #ifdef SIPP_ADAPTIVE
             if(previous) planner->borrow_projections(*previous);
 #endif
@@ -643,12 +673,13 @@ int main(){
 #endif
 #ifdef SIPP_ADAPTIVE
         planner->previous=nullptr;
-        previous.reset(); // Charge destruction of the borrowed generation to this query.
+        { PROFILE_PHASE(release); previous.reset(); } // Charge destruction of the borrowed generation to this query.
 #endif
         auto searched=Clock::now();
         auto steps=answer.second<0?std::vector<Step>{}:planner->reconstruct(answer.second);
         auto finished=Clock::now();const auto& p=*planner;const auto& s=p.stats;
         std::cout<<"{";
+        PROFILE_EMIT();
 #ifdef SIPP_ADAPTIVE
         std::cout<<"\"projection_hits\":"<<p.projection_hits<<",\"clipped_hits\":"<<p.clipped_hits<<",\"empty_hits\":"<<p.empty_hits<<",\"strategy\":\"repair\",\"decision_us\":"<<decision_us<<",";
 #endif

@@ -1,0 +1,245 @@
+{
+  "19": {
+    "suffix_fresh": {
+      "median_update_ms": 13.654,
+      "p95_update_ms": 312.424,
+      "median_episode_ms": 38.412595,
+      "total_episode_s": 15.703120108999999,
+      "peak_mib": 145.6484375,
+      "strategies": {
+        "full_replan": 130,
+        "certified_suffix": 16
+      }
+    },
+    "suffix_only": {
+      "median_update_ms": 25.04915,
+      "p95_update_ms": 544.637,
+      "median_episode_ms": 60.329800000000006,
+      "total_episode_s": 25.644420492000002,
+      "peak_mib": 349.421875,
+      "strategies": {
+        "repair": 130,
+        "certified_suffix": 16
+      }
+    },
+    "transfer": {
+      "median_update_ms": 24.09,
+      "p95_update_ms": 482.771,
+      "median_episode_ms": 61.77645,
+      "total_episode_s": 25.423858329000005,
+      "peak_mib": 533.0859375,
+      "strategies": {
+        "repair": 130,
+        "certified_suffix": 16
+      }
+    },
+    "full": {
+      "median_update_ms": 15.2083,
+      "p95_update_ms": 312.267,
+      "median_episode_ms": 37.960744999999996,
+      "total_episode_s": 16.03649442,
+      "peak_mib": 140.84375,
+      "strategies": {
+        "full_replan": 146
+      }
+    }
+  },
+  "23": {
+    "suffix_fresh": {
+      "median_update_ms": 25.8519,
+      "p95_update_ms": 283.695,
+      "median_episode_ms": 62.2134,
+      "total_episode_s": 16.216731034,
+      "peak_mib": 98.66796875,
+      "strategies": {
+        "full_replan": 127,
+        "certified_suffix": 10
+      }
+    },
+    "suffix_only": {
+      "median_update_ms": 42.5546,
+      "p95_update_ms": 495.509,
+      "median_episode_ms": 100.636785,
+      "total_episode_s": 26.189301078000003,
+      "peak_mib": 277.13671875,
+      "strategies": {
+        "repair": 127,
+        "certified_suffix": 10
+      }
+    },
+    "transfer": {
+      "median_update_ms": 45.0394,
+      "p95_update_ms": 479.632,
+      "median_episode_ms": 103.71934999999999,
+      "total_episode_s": 25.976908689,
+      "peak_mib": 441.0703125,
+      "strategies": {
+        "repair": 127,
+        "certified_suffix": 10
+      }
+    },
+    "full": {
+      "median_update_ms": 27.3507,
+      "p95_update_ms": 282.881,
+      "median_episode_ms": 65.17525,
+      "total_episode_s": 16.524877379,
+      "peak_mib": 98.38671875,
+      "strategies": {
+        "full_replan": 137
+      }
+    }
+  },
+  "29": {
+    "suffix_fresh": {
+      "median_update_ms": 20.5469,
+      "p95_update_ms": 256.884,
+      "median_episode_ms": 56.62023000000001,
+      "total_episode_s": 13.937184439,
+      "peak_mib": 103.55859375,
+      "strategies": {
+        "full_replan": 126,
+        "certified_suffix": 12
+      }
+    },
+    "suffix_only": {
+      "median_update_ms": 30.4675,
+      "p95_update_ms": 443.496,
+      "median_episode_ms": 80.54303999999999,
+      "total_episode_s": 22.578921106,
+      "peak_mib": 291.1953125,
+      "strategies": {
+        "repair": 126,
+        "certified_suffix": 12
+      }
+    },
+    "transfer": {
+      "median_update_ms": 35.280550000000005,
+      "p95_update_ms": 407.613,
+      "median_episode_ms": 79.464785,
+      "total_episode_s": 22.351127567000002,
+      "peak_mib": 415.50390625,
+      "strategies": {
+        "repair": 126,
+        "certified_suffix": 12
+      }
+    },
+    "full": {
+      "median_update_ms": 26.001900000000003,
+      "p95_update_ms": 251.083,
+      "median_episode_ms": 59.00925,
+      "total_episode_s": 14.158170509,
+      "peak_mib": 99.375,
+      "strategies": {
+        "full_replan": 138
+      }
+    }
+  },
+  "all": {
+    "suffix_fresh": {
+      "median_update_ms": 21.073400000000003,
+      "p95_update_ms": 283.695,
+      "median_episode_ms": 54.389295,
+      "total_episode_s": 45.857035582,
+      "peak_mib": 145.6484375,
+      "strategies": {
+        "full_replan": 383,
+        "certified_suffix": 38
+      }
+    },
+    "suffix_only": {
+      "median_update_ms": 32.2808,
+      "p95_update_ms": 485.712,
+      "median_episode_ms": 85.2582,
+      "total_episode_s": 74.412642676,
+      "peak_mib": 349.421875,
+      "strategies": {
+        "repair": 383,
+        "certified_suffix": 38
+      }
+    },
+    "transfer": {
+      "median_update_ms": 34.7543,
+      "p95_update_ms": 464.285,
+      "median_episode_ms": 86.40594999999999,
+      "total_episode_s": 73.75189458499999,
+      "peak_mib": 533.0859375,
+      "strategies": {
+        "repair": 383,
+        "certified_suffix": 38
+      }
+    },
+    "full": {
+      "median_update_ms": 22.7078,
+      "p95_update_ms": 289.021,
+      "median_episode_ms": 57.729800000000004,
+      "total_episode_s": 46.719542308,
+      "peak_mib": 140.84375,
+      "strategies": {
+        "full_replan": 421
+      }
+    }
+  },
+  "queries": 703,
+  "profile": {
+    "suffix_only": {
+      "seconds": {
+        "lookup": 0.0,
+        "projection": 5.1562261330000005,
+        "witness": 4.777049944000001,
+        "ownership": 2.7802129359999994,
+        "queue": 1.9911179049999996,
+        "release": 2.4367461430000006,
+        "other": 2.2322343879999966
+      },
+      "percent": {
+        "lookup": 0.0,
+        "projection": 26.614720410318988,
+        "witness": 24.65753932551391,
+        "ownership": 14.350532359165648,
+        "queue": 10.277486863192056,
+        "release": 12.577671272368184,
+        "other": 11.522049769441216
+      }
+    },
+    "transfer": {
+      "seconds": {
+        "lookup": 2.0808179730000003,
+        "projection": 2.9633992039999995,
+        "witness": 4.921494347000001,
+        "ownership": 3.1552813010000005,
+        "queue": 2.029760064,
+        "release": 2.5533396590000006,
+        "other": 2.403203864
+      },
+      "percent": {
+        "lookup": 10.348571634713513,
+        "projection": 14.737929671298064,
+        "witness": 24.476161519471418,
+        "ownership": 15.692220556896618,
+        "queue": 10.094644363966518,
+        "release": 12.698572730425218,
+        "other": 11.951899523228652
+      }
+    },
+    "full": {
+      "seconds": {
+        "lookup": 0.0,
+        "projection": 5.134922176,
+        "witness": 1.394782695,
+        "ownership": 0.0,
+        "queue": 2.4235666899999995,
+        "release": 0.236159083,
+        "other": 3.081607345999999
+      },
+      "percent": {
+        "lookup": 0.0,
+        "projection": 41.84586650440319,
+        "witness": 11.36646057274573,
+        "ownership": 0.0,
+        "queue": 19.750298972059493,
+        "release": 1.924524096433019,
+        "other": 25.11284985435857
+      }
+    }
+  }
+}
