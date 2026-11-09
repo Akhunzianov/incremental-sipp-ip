@@ -12,6 +12,8 @@ from .paper import MAPS, build_paper_viewers
 from .suite import DEFAULT_Q, build_suite
 from .repair import build_incremental, compare_case, compare_suite
 from .controlled import run_controlled
+from .scenario_suite import build_scenarios, compare_scenarios
+from .local_scenarios import build_local_scenarios
 
 
 def nonnegative(text):
@@ -122,6 +124,26 @@ def main():
     controlled.add_argument('--warmups',type=nonnegative,default=1)
     controlled.add_argument('--max-expansions',type=positive,default=2000000)
     controlled.add_argument('--timeout',type=positive,default=180)
+    scenarios=commands.add_parser('generate-scenarios',help='build the multi-obstacle coverage matrix and engineered outcome cases')
+    scenarios.add_argument('--output',type=Path,required=True)
+    scenarios.add_argument('--maps',nargs='+',choices=MAPS,default=list(MAPS))
+    scenarios.add_argument('--seeds',nargs='+',type=nonnegative,default=[7,11,19])
+    scenarios.add_argument('--densities',nargs='+',type=probability,default=[.02,.04])
+    scenarios.add_argument('--base-cache',type=Path)
+    scenarios.add_argument('--no-engineered',action='store_true')
+    local_cases=commands.add_parser('generate-local-scenarios',help='derive truly bounded cluster/spread changes from saved base worlds')
+    local_cases.add_argument('suite',type=Path)
+    local_cases.add_argument('--output',type=Path,required=True)
+    scenario_compare=commands.add_parser('compare-scenarios',help='evaluate saved diverse scenarios and report actual route outcomes')
+    scenario_compare.add_argument('suite',type=Path)
+    scenario_compare.add_argument('--output',type=Path,required=True)
+    scenario_compare.add_argument('--repeats',type=positive,default=1)
+    scenario_compare.add_argument('--warmups',type=nonnegative,default=0)
+    scenario_compare.add_argument('--max-expansions',type=positive,default=1000000)
+    scenario_compare.add_argument('--timeout',type=positive,default=180)
+    scenario_compare.add_argument('--seeds',nargs='+',type=nonnegative)
+    scenario_compare.add_argument('--densities',nargs='+',type=probability)
+    scenario_compare.add_argument('--resume',action='store_true')
     args = parser.parse_args()
     try:
         if args.command == "build":
@@ -165,6 +187,13 @@ def main():
         elif args.command == 'controlled-repair':
             print(run_controlled(args.output,args.maps,args.seeds,args.density,args.revision_tick,
                                  args.repeats,args.warmups,args.max_expansions,args.timeout))
+        elif args.command=='generate-scenarios':
+            print(build_scenarios(args.output,args.maps,args.seeds,args.densities,not args.no_engineered,args.base_cache))
+        elif args.command=='generate-local-scenarios':
+            print(build_local_scenarios(args.suite,args.output))
+        elif args.command=='compare-scenarios':
+            print(compare_scenarios(args.suite,args.output,args.repeats,args.warmups,args.max_expansions,
+                                    args.timeout,args.seeds,args.densities,args.resume))
         else:
             print(json.dumps(summarize(args.results, args.output), indent=2))
     except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:

@@ -90,6 +90,32 @@ report live-cache survival, direct versus cascading invalidation, exact change
 size and repair-phase timings. See [the diagnostic definitions and protocol](docs/diagnostics.md)
 and [the measured findings and regression target](docs/diagnostic-findings.md).
 
+## Broader multi-obstacle scenario suite
+
+```sh
+python3 -m sipp_baseline generate-scenarios --output runs/diverse-scenarios-new
+python3 -m sipp_baseline compare-scenarios runs/diverse-scenarios-new \
+  --output runs/diverse-coverage-new
+python3 -m sipp_baseline generate-local-scenarios runs/diverse-scenarios-new \
+  --output runs/local-scenarios-new
+python3 -m sipp_baseline compare-scenarios runs/local-scenarios-new \
+  --output runs/local-coverage-new
+python3 -m sipp_baseline compare-scenarios examples/diverse-pulses \
+  --output runs/pulse-coverage-new
+```
+
+Defaults cover five maps, three seeds, two densities, and one/few/many/all-eligible
+changes, clustered/spread selections, near/far effects and repeated/cancelled
+future predictions. A separate engineered tier guarantees shorter paths, forced
+detours, no-path states and recovery with multiple obstacles. Actual changed
+counts and observed route outcomes are recorded; profile names are not treated
+as evidence of either. The bounded-local supplement preserves downstream arrival
+times; six versioned pulse fixtures force the old path to become invalid with
+short-lived, nearby changes. Together these provide 432 scenarios.
+See [the protocol and commands](docs/diverse-scenarios.md) and
+[the measured findings](docs/diverse-findings.md). The completed local run has
+an [overview with animated examples](runs/scenario-overview/index.html).
+
 ## Generate and measure forecast updates
 
 ```sh

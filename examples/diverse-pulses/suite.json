@@ -1,0 +1,110 @@
+{
+  "config": {
+    "version": "authored-bounded-pulse-fixtures-v1",
+    "seeds": [
+      7,
+      11,
+      19
+    ],
+    "description": "Six versioned adversarial cases. Local deadline-preserving waypoint pulses invalidate the old path."
+  },
+  "cases": [
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 7,
+      "density": 0.11764705882352941,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 2,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-7/agents-2",
+      "scenario_sha256": "afe77fcabe351e88f44a8e4a95f0e5bb4f5c5ee9c91e0bf0937b92bfa1bd57dc",
+      "received_forecasts": 2,
+      "changed_counts": [
+        2
+      ]
+    },
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 7,
+      "density": 0.19047619047619047,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 4,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-7/agents-4",
+      "scenario_sha256": "d28588841473438cc49d921cc2f6f3258c2e74bfc5c1f6bba30ff3f5419dcd8b",
+      "received_forecasts": 2,
+      "changed_counts": [
+        4
+      ]
+    },
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 11,
+      "density": 0.11764705882352941,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 2,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-11/agents-2",
+      "scenario_sha256": "65f9ec23e42038c95af3fb1f0ea3b0724120c245a71fefd2b5d1d557d02f624e",
+      "received_forecasts": 2,
+      "changed_counts": [
+        2
+      ]
+    },
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 11,
+      "density": 0.19047619047619047,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 4,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-11/agents-4",
+      "scenario_sha256": "3f4a028cd97f68b7930bebd409a796501e4ed8d980552800b199f3182502ed8d",
+      "received_forecasts": 2,
+      "changed_counts": [
+        4
+      ]
+    },
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 19,
+      "density": 0.11764705882352941,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 2,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-19/agents-2",
+      "scenario_sha256": "ba2480b0cc6d88d1d824c7116c65aca7eecbabdfe81114a8cd598008467bffa1",
+      "received_forecasts": 2,
+      "changed_counts": [
+        2
+      ]
+    },
+    {
+      "tier": "engineered",
+      "map": "engineered-local-pulse",
+      "seed": 19,
+      "density": 0.19047619047619047,
+      "profile": "bounded-local-forced",
+      "total_obstacles": 4,
+      "inherited_conflict_cell_pairs": 0,
+      "inherited_conflict_pair_ticks": 0,
+      "directory": "seed-19/agents-4",
+      "scenario_sha256": "9e190c361c13ffef9fda73889aefa38ae7c7408db024b630e4d220f6c5920c65",
+      "received_forecasts": 2,
+      "changed_counts": [
+        4
+      ]
+    }
+  ],
+  "complete": true
+}
