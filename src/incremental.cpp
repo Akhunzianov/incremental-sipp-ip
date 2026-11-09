@@ -582,6 +582,7 @@ void solve_fallback(Input&& input,Clock::time_point begin,double decision_us,Fre
     run_fresh(std::move(p),begin,true,decision_us,saved);
 }
 #endif
+#ifndef SIPP_LIBRARY
 #ifdef SIPP_ADAPTIVE
 #include <charconv>
 #include <string_view>
@@ -712,3 +713,4 @@ int main(){
     }
     return std::cin.eof()?0:2;
 }
+#endif

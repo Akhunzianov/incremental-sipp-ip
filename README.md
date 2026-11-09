@@ -377,3 +377,7 @@ For moving-start runs, `python3 -m sipp_baseline.moving_replay` accepts
 `--suffix-fresh` to use a certified suffix when possible and otherwise run a
 fresh SIPP-IP search. See the [four-policy moving-start comparison and phase
 profile](docs/moving-fresh-search.md) for the protocol and measurements.
+
+The [moving-start witness audit](docs/moving-witness-audit.md) measures how
+much of the old search can be reached from the new robot state, how often a
+fresh planner expands those intervals, and the cost of identifying them.

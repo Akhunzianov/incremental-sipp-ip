@@ -7,6 +7,10 @@ struct Planner {
     std::vector<std::string> grid;
     std::vector<Intervals> blocked, closed;
     std::vector<Node> nodes;
+#ifdef SIPP_WITNESS_AUDIT
+    struct TimedExpansion {int key,lo,hi; double us;};
+    std::vector<TimedExpansion> trace;
+#endif
     Actions primitives=actions(); Stats stats;
     using Entry=std::tuple<int,int,int,int>; // f, distance, -upper, stable node id
     std::priority_queue<Entry,std::vector<Entry>,std::greater<Entry>> open;
@@ -66,9 +70,15 @@ struct Planner {
             // A pending goal can be accepted even when the expansion budget is exhausted.
             if(n.r==gr && n.c==gc && n.v==gv) return {"solved",id};
             if(stats.expansions>=limit) return {"expansion_limit",-1};
+#ifdef SIPP_WITNESS_AUDIT
+            auto expansion_start=Clock::now();
+#endif
             ++stats.expansions;
             auto& coverage=closed[key(n)]; coverage.push_back({n.lo,n.hi}); coverage=normalize(coverage);
             for(int a=0;a<static_cast<int>(primitives[n.o][n.v].size());++a) project(n,id,a);
+#ifdef SIPP_WITNESS_AUDIT
+            trace.push_back({key(n),n.lo,n.hi,std::chrono::duration<double,std::micro>(Clock::now()-expansion_start).count()});
+#endif
         }
         return {"no_path",-1};
     }

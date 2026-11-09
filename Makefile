@@ -23,3 +23,7 @@ build/sipp_profile: src/incremental.cpp src/fresh.hpp src/model.hpp src/profile.
 build/full_profile: src/planner.cpp src/fresh.hpp src/model.hpp src/profile.hpp
 	mkdir -p build
 	g++ -std=c++17 -O3 -DNDEBUG -DSIPP_PHASE_PROFILE src/planner.cpp -o $@
+
+build/witness_audit: src/witness_audit.cpp src/incremental.cpp src/fresh.hpp src/model.hpp src/profile.hpp
+	mkdir -p build
+	g++ -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Wpedantic src/witness_audit.cpp -o $@
