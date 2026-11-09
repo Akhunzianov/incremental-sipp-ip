@@ -237,6 +237,10 @@ python3 -m sipp_baseline summarize runs/corridor/results.jsonl --output runs/cor
 
 ## Scope and next integration point
 
+The proposed fixed-start incremental algorithm and repair rules are documented
+in [the repair design](docs/repair-design.md). This is a design and proof plan;
+the executable baseline continues to replan from scratch.
+
 See [the model specification](docs/model.md) before interpreting a benchmark.
 This milestone includes full replanning, replay, synthetic updates, map import,
 validation, a small exact oracle, and measurements. It does not implement
