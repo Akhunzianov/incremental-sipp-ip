@@ -34,4 +34,5 @@ class ThresholdTests(unittest.TestCase):
         self.assertEqual(result['outcome'],'arrived')
         next_query=result['queries'][1]
         self.assertEqual((next_query['tick'],next_query['start']),(40,[0,4,0,1]))
-        self.assertTrue(next_query['reset'])
+        self.assertEqual(next_query['strategy'],'certified_suffix')
+        self.assertFalse(next_query['reset'])

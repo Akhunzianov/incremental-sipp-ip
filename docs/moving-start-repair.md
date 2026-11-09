@@ -52,3 +52,13 @@ Test against full replanning and the independent time-expanded oracle on small m
 Replay the 102 seed-19 pilot episodes on the same executed trajectory first. For the 146 advanced-root queries count direct certificates, recomputed and reused projections, and searches completed without any hits. Report total native time including cache indexing, validation of certificates and disposal, along with median and p95 update latency, peak retained storage and exact remaining-cost agreement. Repeat on separate seeds only after the differential checks pass. A projection hit saves computation but still requires installing a new witness, so hit counts alone do not establish a speedup.
 
 References: [fixed-root proof](repair-correctness.md), [native search](../src/incremental.cpp), [moving replay](../sipp_baseline/moving_replay.py), [pilot results](threshold-study.md).
+
+## Implemented suffix certificate and pilot
+
+Rule 1 runs in the native adaptive executable on an advanced start tick. It uses the completed optimum and forecast held by the retained search. A matching configuration and tick on the reconstructed optimal route supplies a feasible prefix witness. A wait can be split at the decision tick. Reaching the goal at the decision tick has a direct zero-remaining-cost certificate. The implementation checks interval containment over [t,U) on traversable cells and every retained motion contact or wait against the updated forecast, including the endpoint at U. A hit returns the validated steps with strategy `certified_suffix`, zero expansions, and no cache reset. A miss continues through the existing planner. A full-replan fallback does not install a new certificate in this version.
+
+The seed-19 replay matched full replanning on all 248 queries. The 102 episodes had the same decision states, remaining costs and outcomes as the preceding pilot. The certificate avoided 16 of the 146 advanced-start resets (11.0%). The other 130 queries rebuilt the search. There were 98 arrivals, three no-path outcomes and one conflict with committed motion.
+
+In this single replay the 16 hits had median native time 0.66 ms versus 9.90 ms for fresh SIPP-IP on those same queries. Across all 146 updates the respective medians were 22.59 ms and 15.56 ms. These are descriptive timings from one pass with a common executed baseline trajectory. The next implementation target is rule 2 for uncertified queries.
+
+Reproduce with the moving replay command in the [threshold study](threshold-study.md), using a new output filename. [Recorded decisions and native timings](moving-suffix-pilot.jsonl.gz).

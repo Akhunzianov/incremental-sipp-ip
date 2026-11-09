@@ -74,7 +74,8 @@ def replay(data, minimum, percent):
             raise RuntimeError('moving-start comparison inconclusive or mismatched')
         decisions.append(dict(start=q['start'], tick=q['start_tick'], forecast=f['id'],
                               remaining=None if row['cost_ticks'] is None else row['cost_ticks']-q['start_tick'],
-                              reset=row.get('reset'),strategy=row['strategy']))
+                              reset=row.get('reset'),strategy=row['strategy'], expansions=row['expansions'],
+                              adaptive_us=row['total_us'],full_us=ref['total_us']))
     return dict(outcome=outcome,queries=decisions)
 
 

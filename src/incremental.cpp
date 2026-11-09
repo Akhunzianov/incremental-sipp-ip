@@ -443,7 +443,66 @@ bool read_input(Input& p,int h,int w){
     for(auto& b:p.blocked)b=normalize(b);
     return true;
 }
+void print_step(const Step& step) {
+    std::cout<<"{\"action\":\""<<step.action<<"\",\"from\":["<<step.r<<','<<step.c<<','<<step.o<<','<<step.v<<"],\"to\":["<<step.nr<<','<<step.nc<<','<<step.no<<','<<step.nv<<"],\"start\":"<<step.begin<<",\"end\":"<<step.end<<'}';
+}
 #ifdef SIPP_ADAPTIVE
+// Each formerly blocked tick in [first,arrival) must still be blocked.
+bool opens_earlier_route(const Input& old,const Input& next,int first,int arrival) {
+    for(size_t cell=0;cell<old.blocked.size();++cell) {
+        if(old.grid[cell/old.w][cell%old.w]!='.') continue;
+        const auto& current=next.blocked[cell];
+        size_t j=0;
+        for(auto [a,b]:old.blocked[cell]) {
+            if(a>=arrival) break;
+            a=std::max(a,first);
+            b=std::min(b,arrival-1);
+            if(a>b) continue;
+            while(j<current.size() && current[j].second<a) ++j;
+            if(j==current.size() || current[j].first>a || current[j].second<b) return true;
+        }
+    }
+    return false;
+}
+
+bool certified_suffix(const Incremental& cache,const Input& next,std::vector<Step>& suffix) {
+    const auto& old=cache.env;
+    if(!cache.completed || cache.incumbent<0 || next.start<=old.start || next.start>cache.upper ||
+       std::tie(old.horizon,old.gr,old.gc,old.gv,old.grid)!=
+       std::tie(next.horizon,next.gr,next.gc,next.gv,next.grid)) return false;
+    auto free=[&](int r,int c,int lo,int hi) {
+        for(auto [a,b]:next.blocked[r*next.w+c]) {
+            if(a>hi) break;
+            if(b>=lo) return false;
+        }
+        return true;
+    };
+    if(!free(next.sr,next.sc,next.start,next.start)) return false;
+    if(next.start==cache.upper)
+        return next.sr==next.gr && next.sc==next.gc && next.sv==next.gv;
+    if(opens_earlier_route(old,next,next.start,cache.upper)) return false;
+
+    for(auto step:cache.reconstruct(cache.incumbent)) {
+        if(step.end<=next.start) continue;
+        if(suffix.empty()) {
+            if(std::tie(step.r,step.c,step.o,step.v)!=std::tie(next.sr,next.sc,next.so,next.sv)) return false;
+            if(step.begin!=next.start && step.action!="wait") return false;
+            step.begin=next.start;
+        }
+        if(step.action=="wait") {
+            if(!free(step.r,step.c,step.begin,step.end)) return false;
+        } else {
+            const auto& actions=cache.primitives[step.o][step.v];
+            auto action=std::find_if(actions.begin(),actions.end(),[&](const Primitive& p){return p.name==step.action;});
+            if(action==actions.end()) return false;
+            for(const auto& touch:action->touches)
+                if(!free(step.r+touch.dr,step.c+touch.dc,step.begin+touch.first,step.begin+touch.last)) return false;
+        }
+        suffix.push_back(step);
+    }
+    return !suffix.empty();
+}
+
 // Compare against the forecast that actually owns the retained witnesses.
 bool broad_change(const Input& cached,const Input& next,int minimum,int percent) {
     size_t free_cells=0,changed=0;
@@ -483,6 +542,23 @@ int main(){
     while(std::cin>>h>>w){
         auto begin=Clock::now();Input input;if(!read_input(input,h,w))return 2;auto parsed=Clock::now();
 #ifdef SIPP_ADAPTIVE
+        std::vector<Step> suffix;
+        if(planner && certified_suffix(*planner,input,suffix)) {
+            auto finished=Clock::now();
+            std::cout<<"{\"strategy\":\"certified_suffix\",\"status\":\"solved\",\"reset\":false,"
+                     <<"\"cost_ticks\":"<<planner->upper<<",\"expansions\":0,\"projections\":0,\"generated\":0,"
+                     <<"\"queue_pops\":0,\"peak_open\":0,\"setup_us\":"<<micros(begin,parsed)
+                     <<",\"decision_us\":"<<micros(parsed,finished)<<",\"search_us\":0,\"total_us\":"<<micros(begin,finished)
+                     <<",\"steps\":[";
+            bool comma=false;
+            for(const auto& step:suffix) {
+                if(comma) std::cout<<',';
+                comma=true;
+                print_step(step);
+            }
+            std::cout<<"]}\n"<<std::flush;
+            continue;
+        }
         bool fallback=planner && planner->same_query(input) && broad_change(planner->env,input,minimum,percent);
         double decision_us=micros(parsed,Clock::now());
         if(fallback) {
@@ -532,7 +608,7 @@ int main(){
                  <<",\"compactions\":"<<s.compactions<<",\"stored_labels\":"<<p.labels.size()<<",\"stored_projections\":"<<p.records.size()
                  <<",\"unchanged_forecast\":"<<(s.unchanged?"true":"false")<<",\"reset\":"<<(s.reset?"true":"false")<<",\"steps\":[";
         bool comma=false;for(const auto& step:steps){if(comma)std::cout<<',';comma=true;
-            std::cout<<"{\"action\":\""<<step.action<<"\",\"from\":["<<step.r<<','<<step.c<<','<<step.o<<','<<step.v<<"],\"to\":["<<step.nr<<','<<step.nc<<','<<step.no<<','<<step.nv<<"],\"start\":"<<step.begin<<",\"end\":"<<step.end<<'}';}
+            print_step(step);}
         std::cout<<"]}\n"<<std::flush;
     }
     return std::cin.eof()?0:2;
