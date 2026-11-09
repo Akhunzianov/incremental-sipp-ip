@@ -63,6 +63,36 @@ The time horizon must be long enough for the chosen map and speed constraints.
 `expansion_limit`, never `no_path`. `--timeout` bounds a whole forecast batch in
 seconds; a timeout fails the run and leaves `manifest.complete=false`.
 
+## Interactive test visualization
+
+Export a standalone viewer from any completed saved run:
+
+```sh
+python3 -m sipp_baseline visualize runs/corridor
+python3 -m sipp_baseline visualize runs/final-grid24
+```
+
+Open the resulting `viewer.html` in a browser (double-click the file). No web
+server, network connection, or JavaScript packages are needed. To regenerate an
+existing viewer, add `--force`; use `--output path/to/replay.html` for another
+location. The HTML embeds its data, so it can be moved or shared as one file.
+
+The viewer provides:
+
+- Forecast selection, animated playback, tick scrubbing and exact tick stepping.
+- Map zoom, obstacle occupancy, planned path, and the robot's swept-cell overlay.
+- Newly blocked/free cells compared with the previous forecast **at the same tick**.
+- Cell inspection with merged, inclusive reservation intervals.
+- Clickable timed actions and comparisons of median total time, expansions and arrival time.
+- Explicit no-path/limit states and validation failures, without inventing trajectories.
+
+The displayed path uses repetition 0 by default (`--repetition N` selects another).
+Timing bars show medians across all saved repetitions. Exporting does not run the
+planner again, change benchmark measurements, or modify source run data. The
+robot marker interpolates between action endpoints for illustration; collision
+occupancy uses the exact integer-tick primitive table. After arrival its faded
+marker is a reference, not a guarantee of safe indefinite parking.
+
 ## Artifacts
 
 Each run saves:

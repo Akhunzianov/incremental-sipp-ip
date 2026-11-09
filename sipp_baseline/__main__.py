@@ -7,6 +7,7 @@ import sys
 from .generate import generate
 from .model import load, read_map
 from .runner import benchmark, build, summarize
+from .visualize import export_viewer
 
 
 def nonnegative(text):
@@ -58,6 +59,11 @@ def main():
     report = commands.add_parser("summarize")
     report.add_argument("results", type=Path)
     report.add_argument("--output", type=Path)
+    view = commands.add_parser("visualize", help="export an offline interactive viewer for a saved run")
+    view.add_argument("run_directory", type=Path)
+    view.add_argument("--output", type=Path, help="HTML output (default: RUN_DIRECTORY/viewer.html)")
+    view.add_argument("--repetition", type=nonnegative, default=0, help="trajectory repetition to display")
+    view.add_argument("--force", action="store_true", help="replace an existing HTML viewer")
     args = parser.parse_args()
     try:
         if args.command == "build":
@@ -78,6 +84,8 @@ def main():
                 print(f"{row['forecast_id']}: {row['status']}, cost={row['cost_ticks']}, "
                       f"median={row['median_total_us']:.1f} us, expansions={row['expansions']}")
             print(f"Saved results to {args.output}")
+        elif args.command == "visualize":
+            print(export_viewer(args.run_directory, args.output, args.repetition, args.force))
         else:
             print(json.dumps(summarize(args.results, args.output), indent=2))
     except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:

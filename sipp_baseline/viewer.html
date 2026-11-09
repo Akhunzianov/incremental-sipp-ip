@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIPP-IP · Test replay</title>
+<style>
+:root{color-scheme:light;--ink:#172c37;--muted:#5e7079;--line:#d8e1e4;--blue:#225ed5;--teal:#087f76;--red:#d65455}
+*{box-sizing:border-box}body{margin:0;background:#f3f5f5;color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1450px;margin:auto;padding:30px 32px 50px}header{display:flex;justify-content:space-between;align-items:center;gap:24px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:22px}
+h1{font-size:30px;font-weight:650;letter-spacing:-1px;margin:2px 0}h2{font-size:17px;margin:0 0 14px}p{margin:6px 0}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--teal);text-transform:uppercase;font-weight:750}.muted,small{color:var(--muted)}.muted{font-size:13px}.monospace{font:13px ui-monospace,monospace}
+.toolbar,.controls,.toggles{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.toolbar{justify-content:space-between;margin-bottom:18px}.controls label{font-size:13px;color:var(--muted)}
+button,select,input[type=number]{font:inherit;border:1px solid #c7d2d6;border-radius:5px;background:#fff;color:var(--ink);padding:7px 11px}button{cursor:pointer}button:hover{border-color:var(--blue);color:var(--blue)}button:disabled{opacity:.4;cursor:default}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #90b9ff;outline-offset:2px}.primary{background:var(--blue);color:white;border-color:var(--blue);min-width:74px}.primary:hover{color:#fff;background:#174eaa}select{max-width:340px}input[type=range]{accent-color:var(--blue);cursor:pointer}input[type=number]{width:94px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:24px;align-items:start}.map-section,.inspector,.comparison{background:#fff;border:1px solid var(--line);border-radius:8px}.map-section{overflow:hidden}.map-heading{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line)}.map-heading p{margin:0}.viewport{overflow:auto;max-height:640px;background:#fafcfc}canvas{display:block}.legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:var(--color)}
+.playback{padding:15px 18px;border-top:1px solid var(--line)}.timebar{display:flex;gap:15px;align-items:center;margin-top:12px}.timebar input[type=range]{flex:1;min-width:70px}.toggles{padding-top:12px;font-size:12px;color:var(--muted)}.toggles label{display:flex;align-items:center;gap:4px}.message{min-height:24px;padding-top:10px;font-size:13px;color:var(--teal)}
+.inspector{padding:18px}.status{font-weight:650;font-size:19px;margin-bottom:4px}.metrics{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px;margin:20px 0}.metrics dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}.metrics dt{color:var(--muted)}.rule{border:0;border-top:1px solid var(--line);margin:18px 0}.cell-description{font-size:12px;max-height:125px;overflow:auto;white-space:pre-wrap}.action-list{list-style:none;padding:0;margin:0;max-height:255px;overflow:auto}.action-list li button{width:100%;border:0;border-radius:0;text-align:left;display:flex;justify-content:space-between;gap:8px;padding:6px;font-size:12px;background:transparent}.action-list li.active button{background:#e9f3f4;color:#08675f}.action-list li button:hover{background:#f0f4fb}.comparison{margin-top:24px;padding:20px}.comparison-heading{display:flex;justify-content:space-between;gap:15px}.chart{display:flex;align-items:stretch;gap:7px;height:170px;border-bottom:1px solid var(--line);margin-top:18px;overflow-x:auto;padding-top:28px}.bar-item{flex:1;min-width:64px;border:0;border-radius:0;padding:0 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:none;position:relative}.bar-item .bar{width:min(65%,58px);min-height:2px;background:#c0d3ee;border-radius:3px 3px 0 0}.bar-item.selected .bar{background:var(--blue)}.bar-item .value{font-size:11px;margin-bottom:5px}.bar-item .name{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;height:25px;padding-top:5px}.footer{margin-top:18px;font-size:12px;color:var(--muted)}.warning{color:#a12e2f}.empty{padding:8px 0;color:var(--muted);font-size:13px}
+@media(max-width:900px){main{padding:20px 15px}.layout{grid-template-columns:1fr}.inspector{display:block}.action-list{max-height:200px}header{align-items:flex-start}header>div:last-child{max-width:180px}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="eyebrow">SIPP-IP / experiment replay</div><h1 id="title">Test replay</h1><p class="muted" id="subtitle"></p></div><div class="muted">Fixed start · full replan<br>Offline viewer · no external requests</div></header>
+<div class="toolbar"><div class="controls"><button id="previous" aria-label="Previous forecast">←</button><label for="forecast">Forecast</label><select id="forecast"></select><button id="next" aria-label="Next forecast">→</button></div><div class="controls"><label for="zoom">Map zoom</label><select id="zoom"><option value="1">Fit</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select></div></div>
+<div class="layout">
+<section class="map-section" aria-label="Trajectory playback">
+<div class="map-heading"><p id="map-label" class="monospace"></p><p id="hover" class="muted">Click a cell to inspect its intervals</p></div>
+<div class="viewport" id="viewport"><canvas id="map" aria-label="Grid map with obstacle reservations and robot trajectory"></canvas></div>
+<div class="legend"><span style="--color:#334652">Wall</span><span style="--color:#d65455">Occupied</span><span style="--color:#225ed5">Robot / plan</span><span style="--color:#62bdb0">Robot swept cells</span><span style="--color:#d58b24">Newly blocked</span><span style="--color:#298d50">Newly free</span></div>
+<div class="playback"><div class="controls"><button class="primary" id="play">Play</button><button id="reset" aria-label="Reset to start time">Reset</button><button id="back" aria-label="Previous tick">−1 tick</button><button id="forward" aria-label="Next tick">+1 tick</button><label for="speed">Speed</label><select id="speed"><option value="0.25">0.25×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select></div>
+<div class="timebar"><label for="time">Time</label><input id="time" type="range" min="0" max="1" step="1" value="0"><input id="tick" type="number" min="0" step="1" value="0" aria-label="Time in ticks"><span id="seconds" class="monospace"></span></div>
+<div class="toggles"><label><input id="show-occupancy" type="checkbox" checked>Reservations</label><label><input id="show-path" type="checkbox" checked>Planned path</label><label><input id="show-footprint" type="checkbox" checked>Swept cells</label><label><input id="show-changes" type="checkbox">Changes vs previous forecast</label></div>
+<div id="message" class="message" role="status"></div></div>
+</section>
+<aside class="inspector"><div class="eyebrow">Selected forecast</div><div id="status" class="status"></div><p id="validation" class="muted"></p><dl id="metrics" class="metrics"></dl><hr class="rule"><h2 id="cell-title">Cell intervals</h2><div id="cell-description" class="cell-description"></div><hr class="rule"><h2>Timed actions</h2><ol id="actions" class="action-list"></ol><p id="events" class="muted"></p></aside>
+</div>
+<section class="comparison"><div class="comparison-heading"><div><h2>Forecast comparison</h2><p class="muted">Click a bar to inspect that forecast. Timings include setup, search, reconstruction and teardown.</p></div><select id="metric" aria-label="Comparison metric"><option value="median_total_us">Median total time (ms)</option><option value="expansions">Expanded intervals</option><option value="cost_ticks">Arrival time (s)</option></select></div><div id="chart" class="chart" aria-label="Forecast comparison chart"></div></section>
+<p class="footer">Time is discrete (0.1 s per tick); occupied interval endpoints are inclusive. Robot position is interpolated for illustration; the swept-cell overlay follows the exact primitive table. Validation ends at goal arrival. Forecast revisions share a fixed time origin and are not execution steps.</p>
+</main>
+<script id="replay-data" type="application/json">__SIPP_VIEWER_DATA__</script>
+<script>
+"use strict";
+const data=JSON.parse(document.getElementById('replay-data').textContent);
+const $=id=>document.getElementById(id);
+const canvas=$('map'),ctx=canvas.getContext('2d'),background=document.createElement('canvas');
+const rows=data.grid.length,cols=data.grid[0].length,dirs=[[0,1],[-1,0],[0,-1],[1,0]];
+const indexes=data.forecasts.map(f=>new Map(f.cells.map(([r,c,intervals])=>[r*cols+c,intervals])));
+let selected=0,tick=data.start_tick,playing=false,lastFrame=null,fraction=0,cellChoice=data.start.slice(0,2),activeRow=-1;
+let geometry={width:0,height:0,size:1,x:0,y:0,dpr:1};
+const current=()=>data.forecasts[selected];
+const fmtTime=t=>(t*data.tick_seconds).toFixed(1)+' s';
+const number=x=>Number(x).toLocaleString(undefined,{maximumFractionDigits:2});
+const title=s=>s.replaceAll('_',' ');
+function occupied(intervals,t){let lo=0,hi=intervals.length;while(lo<hi){const mid=(lo+hi)>>1;if(intervals[mid][0]<=t)lo=mid+1;else hi=mid;}return lo>0&&intervals[lo-1][1]>=t;}
+function occupiedCells(index,t){const cells=new Set();for(const [cell,intervals] of index)if(occupied(intervals,t))cells.add(cell);return cells;}
+function rect(r,c,inset=0){const g=geometry;return [g.x+c*g.size+inset,g.y+r*g.size+inset,g.size-2*inset,g.size-2*inset];}
+function center(r,c){const g=geometry;return [g.x+(c+.5)*g.size,g.y+(r+.5)*g.size];}
+function line(points,color,width,dashed=false){if(!points.length)return;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.setLineDash(dashed?[5,5]:[]);points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();ctx.setLineDash([]);}
+function resize(){
+ const zoom=Number($('zoom').value),base=Math.max(280,$('viewport').clientWidth);
+ const width=base*zoom,height=Math.max(235,Math.min(620,base*rows/cols+48))*zoom,dpr=window.devicePixelRatio||1;
+ geometry={width,height,dpr,size:Math.min((width-50*zoom)/cols,(height-50*zoom)/rows,64*zoom),x:0,y:0};
+ geometry.x=(width-geometry.size*cols)/2;geometry.y=(height-geometry.size*rows)/2;
+ canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.width=width+'px';canvas.style.height=height+'px';
+ background.width=canvas.width;background.height=canvas.height;
+ const bg=background.getContext('2d');bg.setTransform(dpr,0,0,dpr,0,0);bg.fillStyle='#fafcfc';bg.fillRect(0,0,width,height);
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){bg.fillStyle=data.grid[r][c]==='#'?'#334652':'#ffffff';bg.fillRect(...rect(r,c));if(geometry.size>=8){bg.strokeStyle='#e1e8ea';bg.lineWidth=.6;bg.strokeRect(...rect(r,c));}}
+ bg.fillStyle='#657984';bg.font='10px system-ui';bg.textAlign='center';const stride=Math.max(1,Math.ceil(30/geometry.size));
+ for(let c=0;c<cols;c+=stride)bg.fillText(String(c),center(0,c)[0],geometry.y-9);
+ bg.textAlign='right';for(let r=0;r<rows;r+=stride)bg.fillText(String(r),geometry.x-8,center(r,0)[1]+3);
+ draw();
+}
+function actionAt(t){return current().result.steps.findIndex(s=>s.start<=t&&t<s.end);}
+function pose(t){
+ const result=current().result,steps=result.steps,index=actionAt(t);
+ if(result.status!=='solved')return {r:data.start[0],c:data.start[1],o:data.start[2],ghost:true,index:-1};
+ if(index<0){const state=t>=result.cost_ticks?(steps.length?steps.at(-1).to:data.start):data.start;return {r:state[0],c:state[1],o:state[2],ghost:t>result.cost_ticks,index:-1};}
+ const s=steps[index],u=(t-s.start)/(s.end-s.start),f=s.action==='accelerate'?u*u:s.action==='brake'?2*u-u*u:u;
+ return {r:s.from[0]+(s.to[0]-s.from[0])*f,c:s.from[1]+(s.to[1]-s.from[1])*f,o:s.from[2]+(s.action==='left'?u:s.action==='right'?-u:0),ghost:false,index};
+}
+function footprint(step,t){
+ const [r,c,o]=step.from,[dr,dc]=dirs[o],relative=t-step.start;
+ let contacts=step.action==='accelerate'?[[0,20],[0,29],[20,35],[28,40],[34,40]]:step.action==='brake'?[[0,6],[0,12],[5,20],[11,40],[20,40]]:step.action==='cruise'?[[0,5],[0,5]]:[[0,step.end-step.start]];
+ return contacts.flatMap(([a,b],j)=>a<=relative&&relative<=b?[[r+j*dr,c+j*dc]]:[]);
+}
+function draw(){
+ const g=geometry;if(!g.width)return;
+ ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(background,0,0);ctx.setTransform(g.dpr,0,0,g.dpr,0,0);
+ const blocked=occupiedCells(indexes[selected],tick);
+ if($('show-occupancy').checked){ctx.fillStyle='#d65455';for(const key of blocked)ctx.fillRect(...rect(Math.floor(key/cols),key%cols,Math.min(1,g.size/10)));}
+ if($('show-changes').checked&&selected>0){const previous=occupiedCells(indexes[selected-1],tick);ctx.lineWidth=Math.max(1.5,g.size*.09);
+  for(const key of new Set([...blocked,...previous]))if(blocked.has(key)!==previous.has(key)){ctx.strokeStyle=blocked.has(key)?'#d58b24':'#298d50';ctx.strokeRect(...rect(Math.floor(key/cols),key%cols,Math.min(2,g.size/7)));}}
+ const result=current().result,steps=result.steps;
+ if($('show-path').checked&&result.status==='solved'){const points=[center(...data.start.slice(0,2)),...steps.map(s=>center(...s.to.slice(0,2)))];line(points,'#225ed580',Math.max(1.8,g.size*.12));}
+ if($('show-footprint').checked&&result.status==='solved'){
+  ctx.fillStyle='#31aa9270';
+  // At action boundaries both the preceding last touch and next first touch apply.
+  for(const step of steps)if(step.start<=tick&&tick<=step.end)for(const [r,c] of footprint(step,tick))ctx.fillRect(...rect(r,c,Math.min(2,g.size/8)));
+ }
+ const [sx,sy]=center(...data.start.slice(0,2)),[gx,gy]=center(...data.goal.slice(0,2)),radius=Math.max(3,Math.min(g.size*.25,14*Number($('zoom').value)));
+ ctx.lineWidth=Math.max(1.5,g.size*.05);ctx.strokeStyle='#087f76';ctx.beginPath();ctx.arc(sx,sy,radius*1.3,0,Math.PI*2);ctx.stroke();
+ ctx.save();ctx.translate(gx,gy);ctx.rotate(Math.PI/4);ctx.fillStyle='#172c37';ctx.fillRect(-radius*.8,-radius*.8,radius*1.6,radius*1.6);ctx.restore();
+ const p=pose(tick),[x,y]=center(p.r,p.c);ctx.save();ctx.translate(x,y);ctx.rotate(-p.o*Math.PI/2);ctx.globalAlpha=p.ghost?.45:1;
+ ctx.fillStyle='#225ed5';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,radius*1.05,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.beginPath();ctx.moveTo(radius*.15,-radius*.45);ctx.lineTo(radius*.65,0);ctx.lineTo(radius*.15,radius*.45);ctx.stroke();ctx.restore();
+ ctx.strokeStyle='#7551aa';ctx.lineWidth=2;ctx.strokeRect(...rect(...cellChoice,1));
+ const text=result.status!=='solved'?'No trajectory · showing the start marker only':tick>result.cost_ticks?'After arrival · goal marker only (no parking guarantee)':tick===result.cost_ticks?'Goal reached':p.index>=0?title(steps[p.index].action)+' · '+fmtTime(steps[p.index].start)+' → '+fmtTime(steps[p.index].end):'At start';
+ $('message').textContent=text;
+ if(activeRow!==p.index){const children=$('actions').children;if(children[activeRow])children[activeRow].classList.remove('active');if(children[p.index])children[p.index].classList.add('active');activeRow=p.index;}
+}
+function setTick(value){tick=Math.min(data.horizon,Math.max(data.start_tick,Math.round(Number(value)||0)));$('time').value=tick;$('tick').value=tick;$('seconds').textContent=fmtTime(tick);draw();inspectCell();}
+function stop(){playing=false;lastFrame=null;fraction=0;$('play').textContent='Play';}
+function inspectCell(){
+ const [r,c]=cellChoice,intervals=indexes[selected].get(r*cols+c)||[];
+ $('cell-title').textContent=`Cell (${r}, ${c})`;
+ let text=data.grid[r][c]==='#'?'Static wall · occupied at every tick':occupied(intervals,tick)?'Occupied at this tick':'Free at this tick';
+ if(intervals.length)text+='\nBlocked ticks (inclusive):\n'+intervals.map(([a,b])=>`[${a}, ${b}]  ·  ${fmtTime(a)} – ${fmtTime(b)}`).join('\n');else if(data.grid[r][c]!== '#')text+='\nNo reservations in this forecast.';
+ $('cell-description').textContent=text;
+}
+function metricRow(label,value){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;$('metrics').append(dt,dd);}
+function selectForecast(index){
+ stop();selected=Math.max(0,Math.min(data.forecasts.length-1,index));$('forecast').value=selected;
+ $('previous').disabled=selected===0;$('next').disabled=selected===data.forecasts.length-1;$('show-changes').disabled=selected===0;
+ const f=current(),r=f.result;$('status').textContent=title(r.status);$('status').className='status'+(r.status==='solved'?'':' warning');
+ $('validation').textContent=f.validation;$('validation').className='muted'+(f.validation.startsWith('Validation failed')?' warning':'');
+ $('metrics').replaceChildren();metricRow('Arrival',r.cost_ticks===null?'—':fmtTime(r.cost_ticks));metricRow('Median full replan',(f.median_total_us/1000).toFixed(3)+' ms');metricRow('Measured repetitions',f.samples);
+ metricRow('Expanded intervals',number(r.expansions));metricRow('Primitive projections',number(r.projections));metricRow('Peak OPEN',number(r.peak_open));metricRow('Path repetition',data.repetition);
+ $('actions').replaceChildren();activeRow=-1;
+ r.steps.forEach((step,index)=>{const li=document.createElement('li'),button=document.createElement('button'),name=document.createElement('span'),time=document.createElement('span');name.textContent=`${index+1}. ${title(step.action)}`;time.textContent=`${step.start}–${step.end}`;button.append(name,time);button.title=`(${step.from[0]}, ${step.from[1]}) → (${step.to[0]}, ${step.to[1]})`;button.onclick=()=>{stop();setTick(step.start);};li.append(button);$('actions').append(li);});
+ if(!r.steps.length){const li=document.createElement('li');li.className='empty';li.textContent=r.status==='solved'?'Already at the goal.':'No planned actions.';$('actions').append(li);}
+ $('events').textContent=f.events.length?f.events.map(e=>`Obstacle ${e.obstacle}: ${e.mode}`).join(' · '):'No generator events recorded.';
+ setTick(tick);renderChart();
+}
+function renderChart(){
+ const metric=$('metric').value,values=data.forecasts.map(f=>metric==='median_total_us'?f.median_total_us/1000:metric==='cost_ticks'?(f.result.cost_ticks===null?null:f.result.cost_ticks*.1):f.result[metric]),maximum=Math.max(1e-12,...values.filter(v=>v!==null));
+ $('chart').replaceChildren();data.forecasts.forEach((f,i)=>{const button=document.createElement('button'),value=document.createElement('span'),bar=document.createElement('span'),name=document.createElement('span');button.className='bar-item'+(i===selected?' selected':'');button.setAttribute('aria-label',f.id+': '+(values[i]===null?'no arrival':number(values[i])));button.setAttribute('aria-pressed',String(i===selected));button.title=f.id+' · '+title(f.result.status);value.className='value';value.textContent=values[i]===null?'—':metric==='median_total_us'?values[i].toFixed(3):number(values[i]);bar.className='bar';bar.style.height=(values[i]===null?2:Math.max(2,values[i]/maximum*105))+'px';name.className='name';name.textContent=f.id;button.append(value,bar,name);button.onclick=()=>selectForecast(i);$('chart').append(button);});
+}
+function animate(timestamp){
+ if(!playing)return;
+ if(lastFrame!==null){fraction+=Math.min(250,timestamp-lastFrame)/1000*Number($('speed').value)/data.tick_seconds;if(fraction>=1){const whole=Math.floor(fraction);fraction-=whole;setTick(tick+whole);}}
+ lastFrame=timestamp;if(tick>=data.horizon){stop();return;}requestAnimationFrame(animate);
+}
+$('title').textContent=data.name;$('subtitle').textContent=`${rows} × ${cols} grid · ${data.forecasts.length} forecasts · horizon ${fmtTime(data.horizon)}`;$('map-label').textContent='ROW / COLUMN · '+rows+' × '+cols;
+data.forecasts.forEach((f,i)=>{const option=document.createElement('option');option.value=i;option.textContent=f.id;$('forecast').append(option);});
+for(const id of ['time','tick']){$(id).min=data.start_tick;$(id).max=data.horizon;$(id).addEventListener('input',()=>{stop();setTick($(id).value);});}
+$('forecast').onchange=()=>selectForecast(Number($('forecast').value));$('previous').onclick=()=>selectForecast(selected-1);$('next').onclick=()=>selectForecast(selected+1);
+$('reset').onclick=()=>{stop();setTick(data.start_tick);};$('back').onclick=()=>{stop();setTick(tick-1);};$('forward').onclick=()=>{stop();setTick(tick+1);};
+$('play').onclick=()=>{if(playing){stop();return;}if(tick>=data.horizon)setTick(data.start_tick);playing=true;$('play').textContent='Pause';requestAnimationFrame(animate);};
+for(const id of ['show-path','show-occupancy','show-footprint','show-changes'])$(id).onchange=draw;
+$('zoom').onchange=resize;$('metric').onchange=renderChart;window.addEventListener('resize',resize);
+function cellAt(event){const box=canvas.getBoundingClientRect(),x=(event.clientX-box.left)*geometry.width/box.width,y=(event.clientY-box.top)*geometry.height/box.height;return [Math.floor((y-geometry.y)/geometry.size),Math.floor((x-geometry.x)/geometry.size)];}
+canvas.addEventListener('mousemove',event=>{const [r,c]=cellAt(event);$('hover').textContent=r>=0&&r<rows&&c>=0&&c<cols?`Row ${r}, column ${c}`:'Click a cell to inspect its intervals';});
+canvas.addEventListener('click',event=>{const [r,c]=cellAt(event);if(r>=0&&r<rows&&c>=0&&c<cols){cellChoice=[r,c];inspectCell();draw();}});
+selectForecast(0);resize();
+</script>
+</body>
+</html>
