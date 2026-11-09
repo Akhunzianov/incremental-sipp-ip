@@ -445,7 +445,7 @@ bool read_input(Input& p,int h,int w){
 }
 #ifdef SIPP_ADAPTIVE
 // Compare against the forecast that actually owns the retained witnesses.
-bool broad_change(const Input& cached,const Input& next) {
+bool broad_change(const Input& cached,const Input& next,int minimum,int percent) {
     size_t free_cells=0,changed=0;
     for(int r=0;r<next.h;++r) for(int c=0;c<next.w;++c) {
         if(next.grid[r][c]!='.') continue;
@@ -453,25 +453,40 @@ bool broad_change(const Input& cached,const Input& next) {
         size_t index=r*next.w+c;
         if(next.blocked[index]!=cached.blocked[index]) ++changed;
     }
-    return changed>=32 && changed*10>=free_cells;
+    return changed>0 && changed>=static_cast<size_t>(minimum) && changed*100>=free_cells*percent;
 }
-void solve_fallback(Input&& input,Clock::time_point begin) {
+void solve_fallback(Input&& input,Clock::time_point begin,double decision_us) {
     auto p=std::make_unique<Planner>();
     std::tie(p->h,p->w,p->horizon,p->sr,p->sc,p->so,p->sv,p->start,p->gr,p->gc,p->gv,p->limit)=
         std::tie(input.h,input.w,input.horizon,input.sr,input.sc,input.so,input.sv,input.start,input.gr,input.gc,input.gv,input.limit);
     p->grid=std::move(input.grid);
     p->blocked=std::move(input.blocked);
     p->closed.resize(p->h*p->w*8);
-    run_fresh(std::move(p),begin,true);
+    run_fresh(std::move(p),begin,true,decision_us);
 }
 #endif
+#ifdef SIPP_ADAPTIVE
+#include <charconv>
+#include <string_view>
+int main(int argc,char** argv){
+    int minimum=0,percent=5;
+    auto parse=[](std::string_view text,int& value){
+        auto end=text.data()+text.size();
+        auto result=std::from_chars(text.data(),end,value);
+        return result.ec==std::errc{} && result.ptr==end && value>=0;
+    };
+    if(argc!=1 && (argc!=3 || !parse(argv[1],minimum) || !parse(argv[2],percent) || percent>100)) return 2;
+#else
 int main(){
+#endif
     std::ios::sync_with_stdio(false);std::unique_ptr<Incremental> planner;int h,w;
     while(std::cin>>h>>w){
         auto begin=Clock::now();Input input;if(!read_input(input,h,w))return 2;auto parsed=Clock::now();
 #ifdef SIPP_ADAPTIVE
-        if(planner && planner->same_query(input) && broad_change(planner->env,input)) {
-            solve_fallback(std::move(input),begin);
+        bool fallback=planner && planner->same_query(input) && broad_change(planner->env,input,minimum,percent);
+        double decision_us=micros(parsed,Clock::now());
+        if(fallback) {
+            solve_fallback(std::move(input),begin,decision_us);
             continue;
         }
 #endif
@@ -491,7 +506,7 @@ int main(){
         auto finished=Clock::now();const auto& p=*planner;const auto& s=p.stats;
         std::cout<<"{";
 #ifdef SIPP_ADAPTIVE
-        std::cout<<"\"strategy\":\"repair\",";
+        std::cout<<"\"strategy\":\"repair\",\"decision_us\":"<<decision_us<<",";
 #endif
         std::cout<<"\"algorithm\":\"incremental-sipp-ip\",\"status\":\""<<answer.first<<"\",\"cost_ticks\":";
         if(answer.second<0)std::cout<<"null";else std::cout<<p.labels[answer.second].n.lo;

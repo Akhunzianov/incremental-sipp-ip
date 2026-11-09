@@ -19,7 +19,10 @@ def main():
     parser.add_argument('--density', type=float, default=.04)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--repeats', type=int, default=3)
+    parser.add_argument('--thresholds', type=int, nargs=2, metavar=('CELLS','PERCENT'))
     args = parser.parse_args()
+    if args.thresholds and (args.thresholds[0] < 0 or not 0 <= args.thresholds[1] <= 100):
+        parser.error('thresholds require nonnegative cells and percentage in [0, 100]')
     if args.repeats < 1:
         parser.error('--repeats must be positive')
     subprocess.run(['make', 'build-adaptive'], cwd=ROOT, check=True)
@@ -40,7 +43,8 @@ def main():
                     names = list(binaries)
                     offset = trial % len(names)
                     for name in names[offset:] + names[:offset]:
-                        rows = solve_batch(data, forecasts, binary=binaries[name])
+                        rows = solve_batch(data, forecasts, binary=binaries[name],
+                                           binary_args=(args.thresholds or ()) if name == 'adaptive' else ())
                         for i, (forecast, row) in enumerate(zip(forecasts, rows)):
                             validate(data, forecast, row)
                             answer = row['status'], row['cost_ticks']
@@ -55,7 +59,7 @@ def main():
                             if name == 'adaptive':
                                 strategies[i] = row['strategy']
                 record = {'case': case['directory'], 'profile': case['profile'], 'tier': case['tier'],
-                          'seed': args.seed, 'strategies': list(strategies.values()), 'repeats': args.repeats,
+                          'seed': args.seed, 'thresholds': args.thresholds, 'strategies': list(strategies.values()), 'repeats': args.repeats,
                           'total_us': times, 'update_us': {name: sum(map(statistics.median, samples[1:]))
                                                            for name, samples in times.items()}}
                 stream.write(json.dumps(record) + '\n')

@@ -87,14 +87,14 @@ struct Planner {
     }
 };
 inline double elapsed(Clock::time_point a,Clock::time_point b) { return std::chrono::duration<double,std::micro>(b-a).count(); }
-inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin, bool adaptive=false) {
+inline void run_fresh(std::unique_ptr<Planner> planner, Clock::time_point begin, bool adaptive=false,double decision_us=0) {
     auto& p=*planner;
     auto ready=Clock::now(); auto [status,goal]=p.search(); auto searched=Clock::now();
     auto steps=goal<0?std::vector<Step>{}:p.reconstruct(goal); auto finished=Clock::now();
     int cost=goal<0?-1:p.nodes[goal].lo; auto stats=p.stats;
     planner.reset(); auto destroyed=Clock::now();
     std::cout<<"{";
-    if(adaptive) std::cout<<"\"strategy\":\"full_replan\",";
+    if(adaptive) std::cout<<"\"strategy\":\"full_replan\",\"decision_us\":"<<decision_us<<",";
     std::cout<<"\"status\":\""<<status<<"\",\"cost_ticks\":";
     if(goal<0) std::cout<<"null"; else std::cout<<cost;
     std::cout<<",\"setup_us\":"<<elapsed(begin,ready)<<",\"search_us\":"<<elapsed(ready,searched)

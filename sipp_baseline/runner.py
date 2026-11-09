@@ -32,11 +32,11 @@ def ensure_built(binary=None):
     return BINARY
 
 
-def solve_batch(data, forecasts=None, max_expansions=1_000_000, binary=None, timeout=120):
+def solve_batch(data, forecasts=None, max_expansions=1_000_000, binary=None, timeout=120, binary_args=()):
     binary = ensure_built(binary)
     forecasts = data["forecasts"] if forecasts is None else forecasts
     payload = "".join(protocol(data, f, max_expansions) for f in forecasts)
-    process = subprocess.run([str(binary)], input=payload, text=True, capture_output=True,
+    process = subprocess.run([str(binary), *map(str, binary_args)], input=payload, text=True, capture_output=True,
                              timeout=timeout, check=True)
     results = [json.loads(line) for line in process.stdout.splitlines()]
     if len(results) != len(forecasts):

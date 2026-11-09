@@ -15,7 +15,7 @@ class AdaptiveTests(unittest.TestCase):
         widespread = [[r, c, 40, 80] for r in range(2, 5) for c in range(13)]
         broad = dict(pulse, reservations=pulse['reservations'] + widespread)
         forecasts = [initial, broad, pulse, initial]
-        adaptive = solve_batch(data, forecasts, binary=ROOT / 'build/sipp_ip_adaptive')
+        adaptive = solve_batch(data, forecasts, binary=ROOT / 'build/sipp_ip_adaptive', binary_args=(32,10))
         baseline = solve_batch(data, forecasts)
         self.assertEqual([r['strategy'] for r in adaptive], ['repair', 'full_replan', 'repair', 'repair'])
         self.assertGreater(baseline[2]['cost_ticks'], baseline[0]['cost_ticks'])
