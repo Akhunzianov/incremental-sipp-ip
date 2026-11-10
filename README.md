@@ -1,5 +1,10 @@
 # Incremental SIPP-IP research: full replanning and interval repair
 
+[Final report](docs/final-report.md) · [Final slides](docs/final-presentation.pptx) · [Original project presentation](docs/project-proposal.pdf) · [Benchmark protocol](docs/final-protocol.md)
+
+The [project release](https://github.com/Akhunzianov/incremental-sipp-ip/releases/tag/project-final) includes ready-to-open offline viewers and all 450 generated final benchmark scenarios. Extract the viewer archive and open `runs/paper/index.html`, `runs/q-comparison/index.html`, or `runs/scenario-overview/index.html`. To use the final scenarios with the benchmark commands, extract the scenario archive in the repository root.
+
+
 Both fixed-start planners run initially, then **only when the effective prediction
 changes**. The baseline constructs a fresh SIPP-IP search at each such event;
 the incremental planner repairs saved interval witnesses and their dependencies.
